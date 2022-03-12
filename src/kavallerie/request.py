@@ -9,7 +9,6 @@ import horseman.meta
 from dataclasses import dataclass
 from roughrider.routing.meta import Route
 from kavallerie.utils import unique
-from zope.sqlalchemy import register
 
 
 class Request(horseman.meta.Overhead):
@@ -71,8 +70,6 @@ class Request(horseman.meta.Overhead):
     def db_session(self):
         dbconfig = self.app.config.get('database')
         if (factory := dbconfig.get('session_factory')) is not None:
-            if self.transaction_manager:
-                register(factory)
             return factory()
 
     @unique

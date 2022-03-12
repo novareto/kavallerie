@@ -44,14 +44,14 @@ def test_exception():
         raise NotImplementedError
 
     manager = DummyTransactionManager()
-    def factory():
-        return manager
 
-    request = Request('/', app=None, environ={
-        'REQUEST_METHOD': 'GET',
-        'SCRIPT_NAME': ''
-    })
-    middleware = transaction({}, handler, transaction_factory=factory)
+    request = Request(
+        '/', app=None, transaction_manager=manager, environ={
+            'REQUEST_METHOD': 'GET',
+            'SCRIPT_NAME': ''
+        }
+    )
+    middleware = transaction({}, handler)
 
     with pytest.raises(NotImplementedError):
         middleware(request)

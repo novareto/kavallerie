@@ -5,6 +5,7 @@ from horseman.response import Response
 from kavallerie.app import RoutingApplication
 from kavallerie.transaction import transaction
 from webtest import TestApp as WSGIApp
+from zope.sqlalchemy import register
 
 
 Base = declarative_base()
@@ -23,6 +24,7 @@ def test_middleware():
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     DBSession = scoped_session(sessionmaker(bind=engine))
+    register(DBSession)
 
     app = RoutingApplication(config={
         'database': {
@@ -35,7 +37,6 @@ def test_middleware():
         person = Person(name="MacBeth", age=35)
         request.db_session.add(person)
         request.db_session.flush()
-        request.transaction_manager.get().commit()
         return Response(201)
 
     @app.routes.register('/person/{id}')
@@ -54,3 +55,4 @@ def test_middleware():
 
     person = DBSession().query(Person).get(1)
     assert person is not None
+    assert person.age == 35
