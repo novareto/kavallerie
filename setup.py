@@ -6,10 +6,16 @@ version = "0.1.dev0"
 
 install_requires = [
     'horseman',
-    'transaction',
     'http-session >= 0.2',
     'http-session-file >= 0.2',
-    'roughrider.routing'
+    'roughrider.routing',
+
+    # transaction
+    'transaction',
+
+    # sql
+    'sqlalchemy.orm',
+    'zope.sqlalchemy',
 ]
 
 

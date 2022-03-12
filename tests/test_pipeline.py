@@ -1,11 +1,11 @@
 from webtest import TestApp as WSGIApp
-from reiter.application.app import RoutingApplication
+from kavallerie.app import RoutingApplication
 from horseman.response import Response
 
 
-def capitalize(app):
-    def capitalize_middleware(config, request):
-        response = app(config, request)
+def capitalize(config, app):
+    def capitalize_middleware(request):
+        response = app(request)
         response.body = response.body.upper()
         return response
     return capitalize_middleware
@@ -22,6 +22,6 @@ def test_middleware():
     response = test.get('/')
     assert response.body == b'This is my view'
 
-    app.middlewares.add(capitalize, order=1)
+    app.pipeline.add(capitalize, order=1)
     response = test.get('/')
     assert response.body == b'THIS IS MY VIEW'

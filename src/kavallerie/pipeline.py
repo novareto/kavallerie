@@ -12,12 +12,12 @@ class Pipeline:
     def __init__(self):
         self._chain = []
 
-    def wrap(self, wrapped):
+    def wrap(self, conf, wrapped):
         if not self._chain:
             return wrapped
 
         return reduce(
-            lambda x, y: y(x),
+            lambda x, y: y(conf, x),
             (m[1] for m in reversed(self._chain)),
             wrapped
         )

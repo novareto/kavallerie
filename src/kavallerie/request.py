@@ -1,26 +1,29 @@
 import typing as t
 import urllib.parse
 import functools
+import transaction
 import horseman.parsers
 import horseman.types
 import horseman.http
 import horseman.meta
 from dataclasses import dataclass
 from roughrider.routing.meta import Route
+from kavallerie.utils import unique
+from zope.sqlalchemy import register
 
 
 class Request(horseman.meta.Overhead):
 
     __slots__ = (
-        '_content_type',
-        '_cookies',
         '_data',
-        '_query',
         'app',
         'environ',
         'method',
+        'path',
         'route',
         'script_name',
+        'transaction_manager',
+        'utilities',
     )
 
     app: horseman.meta.Node
@@ -28,25 +31,31 @@ class Request(horseman.meta.Overhead):
     cookies: horseman.http.Cookies
     environ: horseman.types.Environ
     method: horseman.types.HTTPMethod
+    path: str
     query: horseman.http.Query
     route: t.Optional[Route]
     script_name: str
+    utilities: dict
 
     _data: t.Optional[horseman.parsers.Data]
 
     def __init__(self,
+                 path: str,
                  app: horseman.meta.Node,
                  environ: horseman.types.Environ,
+                 transaction_manager: transaction.TransactionManager = None,
                  route: t.Optional[Route] = None):
-        self._content_type = ...
-        self._cookies = ...
         self._data = ...
-        self._query = ...
         self.app = app
+        self.path = path
         self.environ = environ
         self.method = environ['REQUEST_METHOD'].upper()
         self.route = route
         self.script_name = urllib.parse.quote(environ['SCRIPT_NAME'])
+        self.utilities = {}
+        if transaction_manager is None:
+            transaction_manager = transaction.TransactionManager(explicit=True)
+        self.transaction_manager = transaction_manager
 
     def extract(self) -> horseman.parsers.Data:
         if self._data is not ...:
@@ -58,30 +67,29 @@ class Request(horseman.meta.Overhead):
 
         return self._data
 
-    @property
+    @unique
+    def db_session(self):
+        dbconfig = self.app.config.get('database')
+        if (factory := dbconfig.get('session_factory')) is not None:
+            if self.transaction_manager:
+                register(factory)
+            return factory()
+
+    @unique
     def query(self):
-        if self._query is ...:
-            self._query = horseman.http.Query.from_environ(self.environ)
-        return self._query
+        return horseman.http.Query.from_environ(self.environ)
 
-    @property
+    @unique
     def cookies(self):
-        if self._cookies is ...:
-            self._cookies = horseman.http.Cookies.from_environ(self.environ)
-        return self._cookies
+        return horseman.http.Cookies.from_environ(self.environ)
 
-    @property
+    @unique
     def content_type(self):
-        if self._content_type is ...:
-            if 'CONTENT_TYPE' in self.environ:
-                self._content_type = \
-                    horseman.http.ContentType.from_http_header(
-                        self.environ['CONTENT_TYPE'])
-            else:
-                self._content_type = None
-        return self._content_type
+        if 'CONTENT_TYPE' in self.environ:
+            return horseman.http.ContentType.from_http_header(
+                self.environ['CONTENT_TYPE'])
 
-    @functools.cached_property
+    @unique
     def application_uri(self):
         scheme = self.environ['wsgi.url_scheme']
         http_host = self.environ.get('HTTP_HOST')

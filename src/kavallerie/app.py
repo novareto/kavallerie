@@ -14,15 +14,15 @@ from kavallerie.request import Request
 class Application(horseman.meta.Node):
     config: dict = field(default_factory=dict)
     utilities: dict = field(default_factory=dict)
-    pipeline: t.Type[Middlewares] = field(default_factory=Pipeline)
+    pipeline: t.Type[Pipeline] = field(default_factory=Pipeline)
     request_factory: t.Type[Request] = Request
 
-    def endpoint(self, config, request) -> Response:
+    def endpoint(self, request) -> Response:
         raise NotImplementedError('Implement your own.')
 
     def resolve(self, path: str, environ: Environ) -> Response:
         request = self.request_factory(path, self, environ)
-        response = self.pipeline.wrap(self.endpoint)(self.config, request)
+        response = self.pipeline.wrap(self.config, self.endpoint)(request)
         return response
 
 
@@ -30,7 +30,7 @@ class Application(horseman.meta.Node):
 class RoutingApplication(Application):
     routes: NamedRoutes = field(default_factory=NamedRoutes)
 
-    def endpoint(self, config, request):
+    def endpoint(self, request):
         route = self.routes.match_method(request.path, request.method)
         request.route = route
         return route.endpoint(request, **route.params)
