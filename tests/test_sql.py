@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from horseman.response import Response
 from kavallerie.app import RoutingApplication
-from kavallerie.transaction import transaction
+from kavallerie.transaction import Transaction
 from webtest import TestApp as WSGIApp
 from zope.sqlalchemy import register
 
@@ -31,6 +31,7 @@ def test_middleware():
             'session_factory': DBSession
         }
     })
+    Transaction().join(app.pipeline)
 
     @app.routes.register('/create', methods=('POST',))
     def create(request):
@@ -44,7 +45,6 @@ def test_middleware():
         person = request.db_session.query(Person).get(id)
         return Response(200, body=person.name)
 
-    app.pipeline.add(transaction, order=2)
 
     test = WSGIApp(app)
     response = test.post('/create')

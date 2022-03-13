@@ -22,7 +22,7 @@ class Application(horseman.meta.Node):
 
     def resolve(self, path: str, environ: Environ) -> Response:
         request = self.request_factory(path, self, environ)
-        response = self.pipeline.wrap(self.config, self.endpoint)(request)
+        response = self.pipeline.wrap(self.endpoint, self.config)(request)
         return response
 
 

@@ -9,6 +9,7 @@ import horseman.meta
 from dataclasses import dataclass
 from roughrider.routing.meta import Route
 from kavallerie.utils import unique
+from http_session.session import Session
 
 
 class Request(horseman.meta.Overhead):
@@ -22,6 +23,7 @@ class Request(horseman.meta.Overhead):
         'route',
         'script_name',
         'transaction_manager',
+        'http_session',
         'utilities',
     )
 
@@ -32,17 +34,18 @@ class Request(horseman.meta.Overhead):
     method: horseman.types.HTTPMethod
     path: str
     query: horseman.http.Query
-    route: t.Optional[Route]
     script_name: str
     utilities: dict
 
+    route: t.Optional[Route]
     _data: t.Optional[horseman.parsers.Data]
 
     def __init__(self,
                  path: str,
                  app: horseman.meta.Node,
                  environ: horseman.types.Environ,
-                 transaction_manager: transaction.TransactionManager = None,
+                 http_session: Session = None,
+                 utilities: t.Optional[t.Mapping] = None,
                  route: t.Optional[Route] = None):
         self._data = ...
         self.app = app
@@ -51,10 +54,7 @@ class Request(horseman.meta.Overhead):
         self.method = environ['REQUEST_METHOD'].upper()
         self.route = route
         self.script_name = urllib.parse.quote(environ['SCRIPT_NAME'])
-        self.utilities = {}
-        if transaction_manager is None:
-            transaction_manager = transaction.TransactionManager(explicit=True)
-        self.transaction_manager = transaction_manager
+        self.utilities = utilities is not None and utilities or {}
 
     def extract(self) -> horseman.parsers.Data:
         if self._data is not ...:
