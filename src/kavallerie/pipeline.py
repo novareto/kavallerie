@@ -22,7 +22,7 @@ class Pipeline:
         self._chain = []
         self._by_id = {}
 
-    def wrap(self, wrapped, conf):
+    def wrap(self, wrapped: Handler, conf: t.Optional[t.Mapping] = None):
         if not self._chain:
             return wrapped
 

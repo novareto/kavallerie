@@ -10,7 +10,7 @@ def handler(request):
     return Response(200, body='This is my view')
 
 
-def capitalize(app, config):
+def capitalize(app, config=None):
     def capitalize_middleware(request):
         response = app(request)
         response.body = response.body.upper()
@@ -66,7 +66,7 @@ def test_pipeline():
             'SCRIPT_NAME': ''
         }
     )
-    response = pipeline.wrap(handler, {})(request)
+    response = pipeline.wrap(handler)(request)
     assert response.body == 'THIS IS MY VIEW my suffix'
 
 

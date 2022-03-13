@@ -35,14 +35,31 @@ def test_auth(http_session_store):
             'HTTP_HOST': 'localhost:80'
         }
     )
+    authentication = Authentication(
+        sources=[DictSource({'admin': 'admin'})])
     store = http_session_store()
-    middleware = HTTPSession(store=store, secret='my secret')(
-        Authentication(sources=[DictSource({'admin': 'admin'})])(
-            handler, {}
-        ), {}
-    )
-    assert middleware(request)
+    session = HTTPSession(store=store, secret='my secret')
+
+    pipeline = session(authentication(handler))
+    assert pipeline(request)
+    assert list(store) == []
+
+    user = authentication.authenticator.from_credentials(request, {
+        'username': 'admin',
+        'password': 'admin'
+    })
+    assert user.id == 'admin'
+
+    authentication.authenticator.remember(request, user)
+    pipeline = session(authentication(handler))
+    assert pipeline(request)
     assert list(store) == ['00000000-0000-0000-0000-000000000000']
     assert store.get('00000000-0000-0000-0000-000000000000') == {
-        'test': 1
+        'user': 'admin'
     }
+
+    authentication.authenticator.forget(request)
+    pipeline = session(authentication(handler))
+    assert pipeline(request)
+    assert list(store) == ['00000000-0000-0000-0000-000000000000']
+    assert store.get('00000000-0000-0000-0000-000000000000') == {}

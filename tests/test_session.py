@@ -35,7 +35,7 @@ def test_session(http_session_store):
         }
     )
     store = http_session_store()
-    middleware = HTTPSession(store=store, secret='my secret')(handler, {})
+    middleware = HTTPSession(store=store, secret='my secret')(handler)
     assert middleware(request)
     assert list(store) == ['00000000-0000-0000-0000-000000000000']
     assert store.get('00000000-0000-0000-0000-000000000000') == {

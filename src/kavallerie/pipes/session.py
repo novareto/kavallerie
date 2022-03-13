@@ -20,6 +20,7 @@ class HTTPSession(MiddlewareFactory):
         cookie_name: str = 'sid'
         secure: bool = True
         salt: t.Optional[str] = None
+        save_new_empty: bool = False
 
     def __post_init__(self):
         self.manager = SignedCookieManager(
@@ -60,7 +61,12 @@ class HTTPSession(MiddlewareFactory):
                 request.utilities['http_session'] = session
 
             response = handler(request)
-            if session.modified or not session.new:
+
+            if not session.modified and (
+                    session.new and self.config.save_new_empty):
+                session.save()
+
+            if session.modified:
                 if response.status < 400:
                     tm = request.utilities.get('transaction_manager')
                     if tm is None or not tm.isDoomed():

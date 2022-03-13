@@ -20,7 +20,7 @@ def test_exception(transaction_manager):
             'SCRIPT_NAME': ''
         }
     )
-    middleware = Transaction()(handler, {})
+    middleware = Transaction()(handler)
 
     with pytest.raises(NotImplementedError):
         middleware(request)
