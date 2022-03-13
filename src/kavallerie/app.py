@@ -1,5 +1,4 @@
 import typing as t
-import urllib.parse
 import horseman.meta
 import horseman.parsers
 from horseman.response import Response

@@ -35,7 +35,7 @@ class Transaction(MiddlewareFactory):
                 else:
                     txn.commit()
                 return response
-            except Exception as exc:
+            except Exception:
                 txn.abort()
                 raise
 

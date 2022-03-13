@@ -1,15 +1,13 @@
 import uuid
-import pytest
 from unittest.mock import patch
 from horseman.response import Response
-from kavallerie.request import Request
 from kavallerie.session import HTTPSession
 from kavallerie.flash import flash
 from kavallerie.app import RoutingApplication
 from webtest import TestApp as WSGIApp
 
 
-def uuid_generator(count = 0):
+def uuid_generator(count=0):
     while True:
         yield uuid.UUID(int=count)
         count += 1

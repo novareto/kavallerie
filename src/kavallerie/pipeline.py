@@ -1,7 +1,6 @@
 import abc
 import typing as t
 import bisect
-import weakref
 from functools import reduce
 from kavallerie.request import Request
 from kavallerie.response import Response

@@ -1,12 +1,9 @@
 import typing as t
 import urllib.parse
-import functools
-import transaction
 import horseman.parsers
 import horseman.types
 import horseman.http
 import horseman.meta
-from dataclasses import dataclass
 from roughrider.routing.meta import Route
 from kavallerie.utils import unique
 from http_session.session import Session
@@ -22,7 +19,6 @@ class Request(horseman.meta.Overhead):
         'path',
         'route',
         'script_name',
-        'transaction_manager',
         'http_session',
         'utilities',
     )

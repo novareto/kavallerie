@@ -8,7 +8,7 @@ from kavallerie.app import RoutingApplication
 from webtest import TestApp as WSGIApp
 
 
-def uuid_generator(count = 0):
+def uuid_generator(count=0):
     while True:
         yield uuid.UUID(int=count)
         count += 1
@@ -37,7 +37,7 @@ def test_session(http_session_store):
     )
     store = http_session_store()
     middleware = HTTPSession(store=store, secret='my secret')(handler, {})
-    response = middleware(request)
+    assert middleware(request)
     assert list(store) == ['00000000-0000-0000-0000-000000000000']
     assert store.get('00000000-0000-0000-0000-000000000000') == {
         'test': 1
