@@ -1,8 +1,6 @@
 import uuid
 from unittest.mock import patch
-from webtest import TestApp as WSGIApp
 from horseman.response import Response
-from kavallerie.app import RoutingApplication
 from kavallerie.pipes.session import HTTPSession
 from kavallerie.pipes.authentication import Authentication
 from kavallerie.pipes.testing import DictSource

@@ -82,15 +82,9 @@ def test_session_middleware(http_session_store):
     }
 
     cookie = response.headers.get('Set-Cookie')
-    response = test.get('/fail', headers={'Cookie': cookie}, expect_errors=True)
+    response = test.get(
+        '/fail', headers={'Cookie': cookie}, expect_errors=True)
     assert response.status_code == 400
     assert store.get('00000000-0000-0000-0000-000000000000') == {
         'value': 42
     }
-
-    # cookie = response.headers.get('Set-Cookie')
-    # response = test.get('/except', headers={'Cookie': cookie}, expect_errors=True)
-    # assert response.status_code == 400
-    # assert store.get('00000000-0000-0000-0000-000000000000') == {
-    #     'value': 42
-    # }

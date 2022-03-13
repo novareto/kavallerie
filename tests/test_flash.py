@@ -40,7 +40,7 @@ def test_session_middleware(http_session_store):
 
     @app.routes.register('/consume_fail')
     def consume_fail(request):
-        messages = list(request.utilities['flash'])
+        list(request.utilities['flash'])
         return Response(400)
 
     test = WSGIApp(app)
