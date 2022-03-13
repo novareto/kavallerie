@@ -28,7 +28,7 @@ class Pipeline:
 
         return reduce(
             lambda x, y: y(x, conf),
-            (m[1] for m in self._chain),
+            (m[1] for m in reversed(self._chain)),
             wrapped
         )
 

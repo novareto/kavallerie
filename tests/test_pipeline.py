@@ -67,7 +67,7 @@ def test_pipeline():
         }
     )
     response = pipeline.wrap(handler, {})(request)
-    assert response.body == 'THIS IS MY VIEW MY SUFFIX'
+    assert response.body == 'THIS IS MY VIEW my suffix'
 
 
 def test_pipeline_add_remove():
