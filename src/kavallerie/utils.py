@@ -1,7 +1,4 @@
-# Originally taken from pyramid.decorator
-
-
-class unique:
+class unique:  # Originally taken from pyramid.decorator
     """Cache a property.
     Use as a method decorator.  It operates almost exactly like the
     Python ``@property`` decorator, but it puts the result of the
