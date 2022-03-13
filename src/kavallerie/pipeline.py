@@ -2,12 +2,13 @@ import abc
 import typing as t
 import bisect
 from functools import reduce
+from frozen_box import freeze
 from kavallerie.request import Request
 from kavallerie.response import Response
 
 
 Handler = t.Callable[[Request], Response]
-Middleware = t.Callable[[Handler, t.Mapping], Handler]
+Middleware = t.Callable[[Handler, t.Optional[t.Mapping]], Handler]
 
 
 class Pipeline:
@@ -65,7 +66,7 @@ class MiddlewareFactory(abc.ABC, Middleware):
         if self.Configuration is not None:
             self.config = self.Configuration(**kwargs)
         else:
-            self.config = kwargs
+            self.config = freeze(kwargs)
         self.__post_init__()
 
     def __post_init__(self):
@@ -78,5 +79,7 @@ class MiddlewareFactory(abc.ABC, Middleware):
         pipeline.remove(self.id)
 
     @abc.abstractmethod
-    def __call__(self, handler: Handler, appconf: t.Mapping) -> Handler:
+    def __call__(self,
+                 handler: Handler,
+                 appconf: t.Optional[t.Mapping] = None) -> Handler:
         pass

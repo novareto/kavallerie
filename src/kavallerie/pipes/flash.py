@@ -1,6 +1,7 @@
 import typing as t
 import logging
 from http_session.session import Session
+from kavallerie.pipeline import Handler
 
 
 class Message(t.NamedTuple):
@@ -32,7 +33,7 @@ class SessionMessages:
         self.session.save()
 
 
-def flash(app, config):
+def flash(handler: Handler, config: t.Optional[t.Mapping] = None):
     def request_flasher(request):
         if (session := request.utilities.get('http_session')) is not None:
             request.utilities['flash'] = SessionMessages(session)
@@ -41,5 +42,5 @@ def flash(app, config):
                 'FlashMessages can only be used if a session'
                 'is already present'
             )
-        return app(request)
+        return handler(request)
     return request_flasher

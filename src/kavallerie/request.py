@@ -1,3 +1,4 @@
+import abc
 import typing as t
 import urllib.parse
 import horseman.parsers
@@ -9,6 +10,10 @@ from kavallerie.utils import unique
 from http_session.session import Session
 
 
+class User(abc.ABC):
+    id: t.Any
+
+
 class Request(horseman.meta.Overhead):
 
     __slots__ = (
@@ -17,6 +22,7 @@ class Request(horseman.meta.Overhead):
         'environ',
         'method',
         'path',
+        'user',
         'route',
         'script_name',
         'http_session',
@@ -33,6 +39,7 @@ class Request(horseman.meta.Overhead):
     script_name: str
     utilities: dict
 
+    user: t.Optional[User]
     route: t.Optional[Route]
     _data: t.Optional[horseman.parsers.Data]
 
@@ -41,11 +48,13 @@ class Request(horseman.meta.Overhead):
                  app: horseman.meta.Node,
                  environ: horseman.types.Environ,
                  http_session: Session = None,
+                 user: t.Optional[User] = None,
                  utilities: t.Optional[t.Mapping] = None,
                  route: t.Optional[Route] = None):
         self._data = ...
         self.app = app
         self.path = path
+        self.user = user
         self.environ = environ
         self.method = environ['REQUEST_METHOD'].upper()
         self.route = route

@@ -2,12 +2,13 @@ import itsdangerous
 import typing as t
 from http_session.meta import Store
 from http_session.cookie import SameSite, HashAlgorithm, SignedCookieManager
-from kavallerie.pipeline import MiddlewareFactory
+from kavallerie.pipeline import Handler, MiddlewareFactory
 
 
 class HTTPSession(MiddlewareFactory):
 
     id = 'http-session'
+    manager: SignedCookieManager
 
     class Configuration(t.NamedTuple):
         store: Store
@@ -30,38 +31,35 @@ class HTTPSession(MiddlewareFactory):
             cookie_name=self.config.cookie_name,
         )
 
-    def __call__(self, app, globalconf):
-
-        def get_id(cookies):
-            signed_sid = cookies.get(self.manager.cookie_name)
-            if signed_sid is not None:
-                try:
-                    sid = self.manager.verify_id(signed_sid)
-                    return str(sid, 'utf-8')
-                except itsdangerous.exc.SignatureExpired:
-                    # Session expired. We generate a new one.
-                    pass
-                except itsdangerous.exc.BadTimeSignature:
-                    # Discrepancy in time signature.
-                    # Invalid, generate a new one
-                    pass
+    def __call__(self,
+                 handler: Handler,
+                 globalconf: t.Optional[t.Mapping] = None):
 
         def http_session_middleware(request):
             session = request.utilities.get('http_session')
             if session is None:
-                sid = get_id(request.cookies)
-                if sid is None:
-                    new = True
+                new = True
+                if (sig := request.cookies.get(self.manager.cookie_name)):
+                    try:
+                        sid = str(self.manager.verify_id(sig), 'utf-8')
+                        new = False
+                    except itsdangerous.exc.SignatureExpired:
+                        # Session expired. We generate a new one.
+                        pass
+                    except itsdangerous.exc.BadTimeSignature:
+                        # Discrepancy in time signature.
+                        # Invalid, generate a new one
+                        pass
+
+                if new is True:
                     sid = self.manager.generate_id()
-                else:
-                    new = False
 
                 session = self.manager.session_factory(
                     sid, self.manager.store, new=new
                 )
                 request.utilities['http_session'] = session
 
-            response = app(request)
+            response = handler(request)
             if session.modified or not session.new:
                 if response.status < 400:
                     tm = request.utilities.get('transaction_manager')

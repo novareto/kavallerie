@@ -9,6 +9,7 @@ install_requires = [
     'http-session >= 0.2',
     'http-session-file >= 0.2',
     'roughrider.routing',
+    'frozen_box',
 
     # transaction
     'transaction',

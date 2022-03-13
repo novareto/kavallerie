@@ -1,6 +1,6 @@
 import typing as t
 from transaction import TransactionManager
-from kavallerie.pipeline import MiddlewareFactory
+from kavallerie.pipeline import Handler, MiddlewareFactory
 from kavallerie.request import Request
 from kavallerie.response import Response
 
@@ -19,7 +19,10 @@ class Transaction(MiddlewareFactory):
             lambda: TransactionManager(explicit=True)
         )
 
-    def __call__(self, app, globalconf):
+    def __call__(self,
+                 handler: Handler,
+                 globalconf: t.Optional[t.Mapping] = None):
+
         def transaction_middleware(request):
             manager = request.utilities.get('transaction_manager')
             if manager is None:
@@ -29,7 +32,7 @@ class Transaction(MiddlewareFactory):
             txn = manager.begin()
             txn.note(request.path)
             try:
-                response = app(request)
+                response = handler(request)
                 if txn.isDoomed() or self.config.veto(request, response):
                     txn.abort()
                 else:
