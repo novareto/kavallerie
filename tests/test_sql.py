@@ -1,11 +1,13 @@
+from webtest import TestApp as WSGIApp
+
 from sqlalchemy import create_engine, Column, Integer, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-from horseman.response import Response
-from kavallerie.app import RoutingApplication
-from kavallerie.transaction import Transaction
-from webtest import TestApp as WSGIApp
 from zope.sqlalchemy import register
+
+from kavallerie.response import Response
+from kavallerie.app import RoutingApplication
+from kavallerie.pipes.transaction import Transaction
 
 
 Base = declarative_base()

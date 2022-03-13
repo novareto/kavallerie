@@ -1,10 +1,10 @@
 import uuid
 from unittest.mock import patch
-from horseman.response import Response
-from kavallerie.request import Request
-from kavallerie.session import HTTPSession
-from kavallerie.app import RoutingApplication
 from webtest import TestApp as WSGIApp
+from horseman.response import Response
+from kavallerie.app import RoutingApplication
+from kavallerie.pipes.session import HTTPSession
+from kavallerie.request import Request
 
 
 def uuid_generator(count=0):

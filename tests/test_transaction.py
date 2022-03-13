@@ -1,6 +1,7 @@
-from kavallerie.transaction import Transaction
-from kavallerie.request import Request
 import pytest
+
+from kavallerie.request import Request
+from kavallerie.pipes.transaction import Transaction
 
 
 def test_exception(transaction_manager):
