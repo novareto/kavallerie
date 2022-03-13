@@ -42,7 +42,7 @@ def test_middleware():
     assert response.body == b'THIS IS MY VIEW'
 
 
-def test_pipeline():
+def test_pipeline(environ):
     pipeline = Pipeline()
     assert list(pipeline) == []
 
@@ -60,12 +60,7 @@ def test_pipeline():
         (1, capitalize)
     ]
 
-    request = Request(
-        '/', app=None, environ={
-            'REQUEST_METHOD': 'GET',
-            'SCRIPT_NAME': ''
-        }
-    )
+    request = Request('/', app=None, environ=environ)
     response = pipeline.wrap(handler)(request)
     assert response.body == 'THIS IS MY VIEW my suffix'
 

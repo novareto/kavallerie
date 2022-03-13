@@ -4,20 +4,16 @@ from kavallerie.request import Request
 from kavallerie.pipes.transaction import Transaction
 
 
-def test_exception(transaction_manager):
+def test_exception(environ, transaction_manager):
 
     def handler(request):
         raise NotImplementedError
 
     manager = transaction_manager()
     request = Request(
-        '/', app=None,
+        '/', app=None, environ=environ,
         utilities={
             'transaction_manager': manager
-        },
-        environ={
-            'REQUEST_METHOD': 'GET',
-            'SCRIPT_NAME': ''
         }
     )
     middleware = Transaction()(handler)

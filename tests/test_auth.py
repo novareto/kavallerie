@@ -5,19 +5,12 @@ from kavallerie.pipes.session import HTTPSession
 from kavallerie.pipes.testing import DictSource
 
 
-def test_auth(http_session_store):
+def test_auth(environ, http_session_store):
 
     def handler(request):
         return Response(201)
 
-    request = Request(
-        '/', app=None,
-        environ={
-            'REQUEST_METHOD': 'GET',
-            'SCRIPT_NAME': '',
-            'HTTP_HOST': 'localhost:80'
-        }
-    )
+    request = Request('/', app=None, environ=environ)
     authentication = Authentication(
         sources=[DictSource({'admin': 'admin'})])
     store = http_session_store()
