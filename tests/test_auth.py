@@ -1,25 +1,10 @@
-import uuid
-from unittest.mock import patch
-from horseman.response import Response
-from kavallerie.pipes.session import HTTPSession
-from kavallerie.pipes.authentication import Authentication
-from kavallerie.pipes.testing import DictSource
 from kavallerie.request import Request
+from kavallerie.response import Response
+from kavallerie.pipes.authentication import Authentication
+from kavallerie.pipes.session import HTTPSession
+from kavallerie.pipes.testing import DictSource
 
 
-def uuid_generator(count=0):
-    while True:
-        yield uuid.UUID(int=count)
-        count += 1
-
-
-def mock_uuid(generator):
-    def uuid_patch():
-        return next(generator)
-    return uuid_patch
-
-
-@patch('uuid.uuid4', mock_uuid(uuid_generator()))
 def test_auth(http_session_store):
 
     def handler(request):

@@ -1,25 +1,11 @@
-import uuid
-from unittest.mock import patch
-from webtest import TestApp as WSGIApp
 from horseman.response import Response
 from kavallerie.app import RoutingApplication
 from kavallerie.pipes.session import HTTPSession
 from kavallerie.request import Request
 
-
-def uuid_generator(count=0):
-    while True:
-        yield uuid.UUID(int=count)
-        count += 1
+from webtest import TestApp as WSGIApp
 
 
-def mock_uuid(generator):
-    def uuid_patch():
-        return next(generator)
-    return uuid_patch
-
-
-@patch('uuid.uuid4', mock_uuid(uuid_generator()))
 def test_session(http_session_store):
 
     def handler(request):
@@ -43,7 +29,6 @@ def test_session(http_session_store):
     }
 
 
-@patch('uuid.uuid4', mock_uuid(uuid_generator()))
 def test_session_middleware(http_session_store):
     store = http_session_store()
     app = RoutingApplication()
