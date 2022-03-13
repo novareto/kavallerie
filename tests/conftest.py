@@ -3,7 +3,6 @@ from copy import deepcopy
 from http_session.meta import Store
 from unittest.mock import Mock
 from transaction import TransactionManager
-import pytest
 
 
 class DummyTransactionManager(TransactionManager):

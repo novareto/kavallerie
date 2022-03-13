@@ -45,7 +45,6 @@ def test_middleware():
         person = request.db_session.query(Person).get(id)
         return Response(200, body=person.name)
 
-
     test = WSGIApp(app)
     response = test.post('/create')
     assert response.body == b'Document created, URL follows'
