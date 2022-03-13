@@ -77,11 +77,14 @@ class Authentication(MiddlewareFactory):
                  globalconf: t.Optional[t.Mapping] = None):
 
         def authentication_middleware(request):
+            request.utilities['authentication'] = self.authenticator
             _ = self.authenticator.identify(request)
             if self.config.filters:
                 for filter in self.config.filters:
                     if (resp := filter(request, globalconf)) is not None:
                         return resp
-            return handler(request)
+            response = handler(request)
+            del request.utilities['authentication']
+            return response
 
         return authentication_middleware
