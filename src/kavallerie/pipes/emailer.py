@@ -1,4 +1,3 @@
-import abc
 import typing as t
 import smtplib
 import logging
@@ -6,7 +5,6 @@ from collections import deque
 from email.utils import make_msgid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from kavallerie.response import Response
 from kavallerie.pipeline import Handler, MiddlewareFactory
 from transaction.interfaces import IDataManager
 from zope.interface import implementer
@@ -126,7 +124,7 @@ class MailDataManager:
     def tpc_finish(self, txn):
         try:
             self.courrier.exhaust()
-        except Exception as exc:
+        except Exception:
             # Any exceptions here can cause database corruption.
             # Better to protect the data and potentially miss emails than
             # leave a database in an inconsistent state which requires a
