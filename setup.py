@@ -7,19 +7,13 @@ version = "0.1.dev0"
 install_requires = [
     'horseman',
     'http-session >= 0.2',
-    'http-session-file >= 0.2',
     'roughrider.routing',
     'frozendict',
     'frozen_box',
-
-    # transaction
     'transaction',
-
-    # sql
     'sqlalchemy.orm',
     'zope.sqlalchemy',
 ]
-
 
 test_requires = [
     'WebTest',
