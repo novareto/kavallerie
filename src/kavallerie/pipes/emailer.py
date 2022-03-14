@@ -1,6 +1,7 @@
 import abc
 import typing as t
 import smtplib
+import logging
 from collections import deque
 from email.utils import make_msgid
 from email.mime.text import MIMEText
@@ -130,7 +131,7 @@ class MailDataManager:
             # Better to protect the data and potentially miss emails than
             # leave a database in an inconsistent state which requires a
             # guru to fix.
-            log.exception(
+            logging.exception(
                 f"Failed in tpc_finish for {self.courrier.exhaust!r}")
 
     tpc_abort = abort
