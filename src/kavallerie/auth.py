@@ -9,7 +9,6 @@ def security_bypass(urls: List[str]) -> Filter:
     def _filter(caller, request):
         if request.path in unprotected:
             return caller(request)
-        return None  # Continue the chain
     return _filter
 
 
@@ -17,15 +16,13 @@ def secured(path: str) -> Filter:
     def _filter(caller, request):
         if user is None:
             return Response.redirect(request.script_name + path)
-        return None  # Continue the chain
     return _filter
 
 
 def TwoFA(path: str, checker: Callable[[Request], bool]) -> Filter:
     def _filter(caller, request):
         if request.path == path:
-            return caller
+            return caller(request)
         if not checker(request):
             return Response.redirect(request.script_name + path)
-        return None  # Continue the chain
     return _filter
