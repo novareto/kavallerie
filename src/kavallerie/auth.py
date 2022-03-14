@@ -14,7 +14,7 @@ def security_bypass(urls: List[str]) -> Filter:
 
 def secured(path: str) -> Filter:
     def _filter(caller, request):
-        if user is None:
+        if request.user is None:
             return Response.redirect(request.script_name + path)
     return _filter
 

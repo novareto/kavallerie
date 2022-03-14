@@ -81,7 +81,7 @@ class Authentication(MiddlewareFactory):
             _ = self.authenticator.identify(request)
             if self.config.filters:
                 for filter in self.config.filters:
-                    if (resp := filter(request)) is not None:
+                    if (resp := filter(handler, request)) is not None:
                         del request.utilities['authentication']
                         return resp
             response = handler(request)

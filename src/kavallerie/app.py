@@ -2,7 +2,8 @@ import typing as t
 import horseman.meta
 import horseman.parsers
 from dataclasses import dataclass, field
-from horseman.types import Environ
+from horseman.http import HTTPError
+from horseman.types import Environ, ExceptionInfo
 from kavallerie.pipeline import Pipeline
 from kavallerie.request import Request
 from kavallerie.response import Response
@@ -10,11 +11,14 @@ from roughrider.routing.components import NamedRoutes
 
 
 @dataclass
-class Application(horseman.meta.Node):
+class Application(horseman.meta.SentryNode):
     config: dict = field(default_factory=dict)
     utilities: dict = field(default_factory=dict)
     pipeline: t.Type[Pipeline] = field(default_factory=Pipeline)
     request_factory: t.Type[Request] = Request
+
+    def handle_exception(self, exc_info: ExceptionInfo, environ: Environ):
+        pass
 
     def endpoint(self, request) -> Response:
         raise NotImplementedError('Implement your own.')
@@ -31,5 +35,14 @@ class RoutingApplication(Application):
 
     def endpoint(self, request):
         route = self.routes.match_method(request.path, request.method)
-        request.route = route
-        return route.endpoint(request, **route.params)
+        if route is not None:
+            try:
+                request.route = route
+                return route.endpoint(request, **route.params)
+            except HTTPError as error:
+                # FIXME: Log.
+                return Response(error.status, error.body)
+            except Exception as exc:
+                return Response(500)
+
+        return Response(404)
