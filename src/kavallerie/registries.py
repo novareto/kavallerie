@@ -1,36 +1,32 @@
 import typing as t
 import inspect
-import decorated_registry
-from typing import Dict, TypeVar, Optional
 
 
-Component = TypeVar('Component')
+Registry = t.TypeVar('Registry')
+Component = t.TypeVar('Component')
 
 
-class NamedComponents(Dict[str, Component]):
+class NamedComponents(t.Dict[str, Component]):
 
-    def __init__(self, items: Optional[Dict[str, Component]] = None):
+    def __init__(self, items: t.Optional[t.Mapping[str, Component]] = None):
         if items is not None:
             if not all(isinstance(key, str) for key in items):
                 raise TypeError('All keys must be strings.')
             super().__init__(items)
 
-    def register(self, component: Component, name: str):
+    def add(self, name: str, component: Component):
         self[name] = component
 
-    def component(self, name: str):
+    def register(self, name: str):
         """Component decorator
         """
         def register_component(component: Component) -> Component:
-            self.register(component, name)
+            self.add(name, component)
             return component
 
         return register_component
 
-    def unregister(self, name: str) -> None:
-        del self[name]
-
-    def __add__(self, components: dict):
+    def __add__(self, components: t.Mapping):
         return self.__class__({**self, **components})
 
     def __setitem__(self, name: str, component: Component):
@@ -39,29 +35,36 @@ class NamedComponents(Dict[str, Component]):
         return super().__setitem__(name, component)
 
 
+class RegistryItem(t.NamedTuple):
+    payload: t.Tuple[t.List, t.Mapping]
+    value: Component
+
+
 class DelegatedRegistry:
-
-    _registry: decorated_registry.Registry
     _signature: inspect.Signature
-    delegate_for: t.Type
+    delegate_for: t.Type[Registry]
     handler: str
+    items: t.List[RegistryItem]
 
-    def __init__(self, delegate_for: t.Type, handler: str = 'register'):
-        self._registry = decorated_registry.Registry()
+    def __init__(self, delegate_for: t.Type[Registry],
+                 handler: str = 'register'):
+        self.items = []
         self.delegate_for = delegate_for
         self.handler = handler
-        self._signature = inspect.Signature(
-            (param for param in
-             inspect.signature(
-                 getattr(delegate_for, self.handler)).parameters.values()
-             if param.name != 'self')
-        )
+        self._signature = inspect.Signature((
+            param for param in inspect.signature(
+                getattr(delegate_for, handler)
+            ).parameters.values() if param.name != 'self'
+        ))
+
+    def add(self, payload: t.Tuple[t.List, t.Mapping], value: Component):
+        self.items.append(RegistryItem(payload=payload, value=value))
 
     def register(self, *args, **kwargs):
         self._signature.bind(*args, **kwargs)
 
-        def wrapper(decorated_):
-            return self._registry.decorate(
+        def wrapper(decorated_: Component):
+            return self.add(
                 payload=tuple((args, kwargs)),
                 value=decorated_,
             )
@@ -69,10 +72,13 @@ class DelegatedRegistry:
         return wrapper
 
     def __iter__(self):
-        return iter(self._registry.items)
+        return iter(self.items)
 
-    def apply(self, registry):
-        assert isinstance(registry, self.delegate_for)
+    def apply(self, registry: Registry):
+        if not isinstance(registry, self.delegate_for):
+            raise TypeError(
+                'Registry handles delegation for {self.delegate_for} '
+                'got {registry.__class__!r} instead.')
         handler = getattr(registry, self.handler)
         for item in self._registry.items:
             args, kwargs = item.payload

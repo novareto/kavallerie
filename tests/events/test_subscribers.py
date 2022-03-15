@@ -198,19 +198,22 @@ def test_registration_lineage_annotation():
 def test_wrong_registration():
     subscribers = Subscribers()
 
-    def my_subscriber(event):
-        pass
-
     with pytest.raises(KeyError) as exc:
-        subscribers.subscribe(NonEvent)(my_subscriber)
+        @subscribers.subscribe(NonEvent)
+        def my_subscriber(event):  # noqa: F811
+            pass
     assert str(exc.value) == "'Subscriber must be a subclass of Event'"
 
     with pytest.raises(TypeError) as exc:
-        subscribers.subscribe(ObjectCreatedEvent)(my_subscriber)
+        @subscribers.subscribe(ObjectCreatedEvent)
+        def my_subscriber(request, event):  # noqa: F811
+            pass
     assert str(exc.value) == "A subscriber function takes only 1 argument"
 
     with pytest.raises(TypeError) as exc:
-        subscribers.subscribe(ObjectCreatedEvent)(my_subscriber)
+        @subscribers.subscribe(ObjectCreatedEvent)
+        def my_subscriber(event: UserCreatedEvent):  # noqa: F811
+            pass
     assert str(exc.value) == (
         "Argument 'event' should hint "
         "<class 'test_subscribers.ObjectCreatedEvent'> "
