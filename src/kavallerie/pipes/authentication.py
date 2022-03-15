@@ -84,6 +84,7 @@ class Authentication(MiddlewareFactory):
                     if (resp := filter(handler, request)) is not None:
                         del request.utilities['authentication']
                         return resp
+
             response = handler(request)
             del request.utilities['authentication']
             return response

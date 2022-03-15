@@ -7,6 +7,7 @@ from horseman.types import Environ, ExceptionInfo
 from kavallerie.pipeline import Pipeline
 from kavallerie.request import Request
 from kavallerie.response import Response
+from kavallerie.events import Subscribers
 from roughrider.routing.components import NamedRoutes
 
 
@@ -15,6 +16,7 @@ class Application(horseman.meta.SentryNode):
     config: dict = field(default_factory=dict)
     utilities: dict = field(default_factory=dict)
     pipeline: Pipeline = field(default_factory=Pipeline)
+    subscribers: Subscribers = field(default_factory=Subscribers)
     request_factory: t.Type[Request] = Request
 
     def handle_exception(self, exc_info: ExceptionInfo, environ: Environ):
@@ -42,8 +44,5 @@ class RoutingApplication(Application):
             except HTTPError as error:
                 # FIXME: Log.
                 return Response(error.status, error.body)
-            except Exception as exc:
-                raise
-                return Response(500)
 
         return Response(404)
