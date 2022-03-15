@@ -37,7 +37,7 @@ def test_middleware():
     response = test.get('/')
     assert response.body == b'This is my view'
 
-    app.pipeline.add('upper', capitalize, order=1)
+    app.pipeline.add(capitalize, order=1)
     response = test.get('/')
     assert response.body == b'THIS IS MY VIEW'
 
@@ -46,15 +46,15 @@ def test_pipeline(environ):
     pipeline = Pipeline()
     assert list(pipeline) == []
 
-    pipeline.add('upper', capitalize, order=1)
+    pipeline.add(capitalize, order=1)
     assert list(pipeline) == [(1, capitalize)]
 
     with pytest.raises(KeyError):
-        pipeline.add('upper', capitalize)
+        pipeline.add(capitalize, order=1)
 
     assert list(pipeline) == [(1, capitalize)]
 
-    pipeline.add('suffix', suffix)
+    pipeline.add(suffix)
     assert list(pipeline) == [
         (0, suffix),
         (1, capitalize)
@@ -67,10 +67,10 @@ def test_pipeline(environ):
 
 def test_pipeline_add_remove():
     pipeline = Pipeline()
-    pipeline.add('upper', capitalize, order=1)
+    pipeline.add(capitalize, order=1)
     assert list(pipeline) == [(1, capitalize)]
-    pipeline.remove('upper')
+    pipeline.remove(capitalize, order=1)
     assert list(pipeline) == []
 
     with pytest.raises(KeyError):
-        pipeline.remove('upper')
+        pipeline.remove(capitalize, order=1)

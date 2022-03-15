@@ -225,7 +225,7 @@ def test_wrong_registration():
         subscribers.add(ObjectCreatedEvent, 'an str')
     assert str(exc.value) == (
         "Subscriber must be a "
-        "typing.Callable[[reiter.events.meta.Event], typing.Any]"
+        "typing.Callable[[kavallerie.events.Event], typing.Any]"
     )
 
 

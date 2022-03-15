@@ -9,9 +9,8 @@ from webtest import TestApp as WSGIApp
 def test_session_middleware(http_session_store):
     store = http_session_store()
     app = RoutingApplication()
-    app.pipeline.add(
-        'session', HTTPSession(store=store, secret='my secret'), order=1)
-    app.pipeline.add('flash', flash, order=2)
+    app.pipeline.add(HTTPSession(store=store, secret='my secret'), order=1)
+    app.pipeline.add(flash, order=2)
 
     @app.routes.register('/add')
     def add(request):

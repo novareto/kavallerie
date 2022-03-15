@@ -30,13 +30,21 @@ class Pipeline:
             wrapped
         )
 
-    def add(self, id: str, middleware: Middleware, order: int = 0):
+    def add(self, middleware: Middleware, order: int = 0):
+        insert = (order, middleware)
         if not self._chain:
-            self._chain = [(order, middleware)]
+            self._chain = [insert]
+        elif insert in self._chain:
+            raise KeyError(
+                'Middleware {middleware!r} already exists at #{order}.')
         else:
             bisect.insort(self._chain, insert)
 
     def remove(self, middleware: Middleware, order: int):
+        insert = (order, middleware)
+        if insert not in self._chain:
+            raise KeyError(
+                'Middleware {middleware!r} doest not exist at #{order}.')
         self._chain.remove((order, middleware))
 
     def clear(self):
@@ -60,12 +68,6 @@ class MiddlewareFactory(abc.ABC, Middleware):
 
     def __post_init__(self):
         pass
-
-    def join(self, pipeline: Pipeline, order: int = 0):
-        pipeline.add(self.id, self, order)
-
-    def leave(self, pipeline: Pipeline):
-        pipeline.remove(self.id)
 
     @abc.abstractmethod
     def __call__(self,

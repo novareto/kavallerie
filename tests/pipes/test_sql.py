@@ -29,22 +29,22 @@ def test_middleware():
     register(DBSession)
 
     app = RoutingApplication(config={
-        'database': {
-            'session_factory': DBSession
-        }
+        'session_factory': DBSession
     })
-    Transaction().join(app.pipeline)
+    app.pipeline.add(Transaction())
 
     @app.routes.register('/create', methods=('POST',))
     def create(request):
         person = Person(name="MacBeth", age=35)
-        request.db_session.add(person)
-        request.db_session.flush()
+        session = request.app.config['session_factory']()
+        session.add(person)
+        session.flush()
         return Response(201)
 
     @app.routes.register('/person/{id}')
     def fetch(request, id):
-        person = request.db_session.query(Person).get(id)
+        session = request.app.config['session_factory']()
+        person = session.query(Person).get(id)
         return Response(200, body=person.name)
 
     test = WSGIApp(app)

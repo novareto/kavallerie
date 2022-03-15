@@ -25,7 +25,7 @@ def test_session(environ, http_session_store):
 def test_session_middleware(http_session_store):
     store = http_session_store()
     app = RoutingApplication()
-    HTTPSession(store=store, secret='my secret').join(app.pipeline)
+    app.pipeline.add(HTTPSession(store=store, secret='my secret'))
 
     @app.routes.register('/add')
     def add(request):

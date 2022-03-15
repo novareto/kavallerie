@@ -8,17 +8,18 @@ install_requires = [
     'horseman',
     'http-session >= 0.2',
     'roughrider.routing',
+    'roughrider.predicate',
     'frozendict',
     'frozen_box',
     'transaction',
-    'sqlalchemy.orm',
-    'zope.sqlalchemy',
 ]
 
 test_requires = [
     'WebTest',
     'pytest',
-    'smtpdfix'
+    'smtpdfix',
+    'sqlalchemy.orm',
+    'zope.sqlalchemy',
 ]
 
 
