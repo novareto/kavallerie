@@ -24,6 +24,7 @@ class NamedComponents(Dict[str, Component]):
         def register_component(component: Component) -> Component:
             self.register(component, name)
             return component
+
         return register_component
 
     def unregister(self, name: str) -> None:
@@ -58,11 +59,13 @@ class DelegatedRegistry:
 
     def register(self, *args, **kwargs):
         self._signature.bind(*args, **kwargs)
+
         def wrapper(decorated_):
             return self._registry.decorate(
                 payload=tuple((args, kwargs)),
                 value=decorated_,
             )
+
         return wrapper
 
     def __iter__(self):

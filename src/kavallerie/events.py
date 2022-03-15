@@ -99,9 +99,11 @@ class Subscribers(collections.abc.Collection):
                   *predicates: Predicate):
         if not predicates:
             predicates = None
+
         def register_subscriber(subscriber: Subscriber) -> Subscriber:
             self.add(event_type, subscriber, predicates)
             return subscriber
+
         return register_subscriber
 
     __call__ = register = subscribe

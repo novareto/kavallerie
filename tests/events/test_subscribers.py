@@ -1,5 +1,4 @@
 import pytest
-from typing import Set
 from unittest.mock import Mock
 from kavallerie.events import Event, Subscribers, Subscription
 from roughrider.predicate.errors import ConstraintError
@@ -23,11 +22,11 @@ class UserCreatedEvent(NonEvent, ObjectCreatedEvent):
 
 def test_instanciation():
     subscribers = Subscribers()
-    assert subscribers.strict == True
+    assert subscribers.strict is True
     assert subscribers._subscribers == {}
 
     subscribers = Subscribers(strict=False)
-    assert subscribers.strict == False
+    assert subscribers.strict is False
     assert subscribers._subscribers == {}
 
 
@@ -98,7 +97,7 @@ def test_registration_with_multiple_predicates():
 
     def ObjectValue(*allowed_values):
         def value_checker(event):
-            if not event.obj in allowed_values:
+            if event.obj not in allowed_values:
                 raise ConstraintError(
                     f'Expected object of value: {allowed_values}'
                 )
@@ -136,7 +135,7 @@ def test_registration_with_OR_predicates():
 
     def ObjectValue(*allowed_values):
         def value_checker(event):
-            if not event.obj in allowed_values:
+            if event.obj not in allowed_values:
                 raise ConstraintError(
                     f'Expected object of value: {allowed_values}'
                 )
@@ -199,22 +198,19 @@ def test_registration_lineage_annotation():
 def test_wrong_registration():
     subscribers = Subscribers()
 
+    def my_subscriber(event):
+        pass
+
     with pytest.raises(KeyError) as exc:
-        @subscribers.subscribe(NonEvent)
-        def my_subscriber(event):
-            pass
+        subscribers.subscribe(NonEvent)(my_subscriber)
     assert str(exc.value) == "'Subscriber must be a subclass of Event'"
 
     with pytest.raises(TypeError) as exc:
-        @subscribers.subscribe(ObjectCreatedEvent)
-        def my_subscriber(request, event):
-            pass
+        subscribers.subscribe(ObjectCreatedEvent)(my_subscriber)
     assert str(exc.value) == "A subscriber function takes only 1 argument"
 
     with pytest.raises(TypeError) as exc:
-        @subscribers.subscribe(ObjectCreatedEvent)
-        def my_subscriber(event: UserCreatedEvent):
-            pass
+        subscribers.subscribe(ObjectCreatedEvent)(my_subscriber)
     assert str(exc.value) == (
         "Argument 'event' should hint "
         "<class 'test_subscribers.ObjectCreatedEvent'> "
@@ -293,7 +289,6 @@ def test_subscribers_methods():
     @subscribers.subscribe(UserCreatedEvent)
     def user_was_added(event: UserCreatedEvent):
         pass
-
 
     assert len(subscribers) == 2
     assert list(subscribers) == [
