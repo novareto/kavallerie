@@ -13,14 +13,12 @@ Middleware = t.Callable[[Handler, t.Optional[t.Mapping]], Handler]
 
 class Pipeline:
 
-    __slots__ = ('_chain', '_by_id')
+    __slots__ = ('_chain',)
 
     _chain: t.List[Middleware]
-    _by_id: t.Mapping
 
-    def __init__(self):
-        self._chain = []
-        self._by_id = {}
+    def __init__(self, *middlewares):
+        self._chain = list(enumerate(middlewares))
 
     def wrap(self, wrapped: Handler, conf: t.Optional[t.Mapping] = None):
         if not self._chain:
@@ -33,25 +31,16 @@ class Pipeline:
         )
 
     def add(self, id: str, middleware: Middleware, order: int = 0):
-        if id in self._by_id:
-            raise KeyError(f"{id!r} is already registered.")
-
-        insert = (order, middleware)
         if not self._chain:
-            self._chain = [insert]
+            self._chain = [(order, middleware)]
         else:
             bisect.insort(self._chain, insert)
-        self._by_id[id] = insert
 
-    def remove(self, id: str):
-        if id not in self._by_id:
-            raise KeyError(f"Unknown middleware {id!r}.")
-        self._chain.remove(self._by_id[id])
-        del self._by_id[id]
+    def remove(self, middleware: Middleware, order: int):
+        self._chain.remove((order, middleware))
 
     def clear(self):
         self._chain.clear()
-        self._by_id.clear()
 
     def __iter__(self):
         return iter(self._chain)

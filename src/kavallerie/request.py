@@ -5,13 +5,13 @@ import horseman.parsers
 import horseman.types
 import horseman.http
 import horseman.meta
+from http_session.session import Session
 from roughrider.routing.meta import Route
 from kavallerie.utils import unique
-from http_session.session import Session
 
 
 class User(abc.ABC):
-    id: t.Any
+    id: t.Union[str, int]
 
 
 class Request(horseman.meta.Overhead):
@@ -70,12 +70,6 @@ class Request(horseman.meta.Overhead):
                 self.environ['wsgi.input'], self.content_type)
 
         return self._data
-
-    @unique
-    def db_session(self):
-        dbconfig = self.app.config.get('database')
-        if (factory := dbconfig.get('session_factory')) is not None:
-            return factory()
 
     @unique
     def query(self):
