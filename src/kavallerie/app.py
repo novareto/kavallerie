@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from horseman.http import HTTPError
 from horseman.types import Environ, ExceptionInfo
 from kavallerie.pipeline import Pipeline
-from kavallerie import lifecycle
 from kavallerie.request import Request
 from kavallerie.response import Response
 from kavallerie.events import Subscribers
@@ -28,9 +27,6 @@ class Application(horseman.meta.SentryNode):
 
     def resolve(self, path: str, environ: Environ) -> Response:
         request = self.request_factory(path, self, environ)
-        self.subscribers.notify(
-            lifecycle.RequestCreated(self, request)
-        )
         response = self.pipeline.wrap(self.endpoint, self.config)(request)
         return response
 
@@ -44,14 +40,7 @@ class RoutingApplication(Application):
         if route is not None:
             try:
                 request.route = route
-                self.subscribers.notify(
-                    lifecycle.RouteFound(self, request, route)
-                )
-                response = route.endpoint(request, **route.params)
-                self.subscribers.notify(
-                    ResponseCreated(self, request, response)
-                )
-                return response
+                return route.endpoint(request, **route.params)
             except HTTPError as error:
                 # FIXME: Log.
                 return Response(error.status, error.body)
