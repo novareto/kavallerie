@@ -63,11 +63,12 @@ class DelegatedRegistry:
     def register(self, *args, **kwargs):
         self._signature.bind(*args, **kwargs)
 
-        def wrapper(decorated_: Component):
-            return self.add(
+        def wrapper(decorated: Component):
+            self.add(
                 payload=tuple((args, kwargs)),
-                value=decorated_,
+                value=decorated,
             )
+            return decorated
 
         return wrapper
 
@@ -77,9 +78,9 @@ class DelegatedRegistry:
     def apply(self, registry: Registry):
         if not isinstance(registry, self.delegate_for):
             raise TypeError(
-                'Registry handles delegation for {self.delegate_for} '
-                'got {registry.__class__!r} instead.')
+                f'Registry handles delegation for {self.delegate_for} '
+                f'got {registry.__class__!r} instead.')
         handler = getattr(registry, self.handler)
-        for item in self._registry.items:
+        for item in self.items:
             args, kwargs = item.payload
             handler(*args, **kwargs)(item.value)
