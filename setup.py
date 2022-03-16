@@ -7,8 +7,7 @@ version = "0.1.dev0"
 install_requires = [
     'horseman',
     'http-session >= 0.2',
-    'roughrider.routing',
-    'roughrider.predicate',
+    'prejudice',
     'frozendict',
     'frozen_box',
     'transaction',

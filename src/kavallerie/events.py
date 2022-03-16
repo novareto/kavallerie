@@ -2,8 +2,8 @@ import abc
 import collections.abc
 import typing as t
 from inspect import isclass, signature
-from roughrider.predicate.types import Predicate, Predicates
-from roughrider.predicate.utils import resolve_constraints
+from prejudice.types import Predicate, Predicates
+from prejudice.utils import resolve_constraints
 
 
 MISSING = object()

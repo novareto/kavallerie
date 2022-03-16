@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import Mock
 from kavallerie.events import Event, Subscribers, Subscription
-from roughrider.predicate.errors import ConstraintError
-from roughrider.predicate.validators import Or
+from prejudice.errors import ConstraintError
+from prejudice.validators import Or
 
 
 class ObjectCreatedEvent(Event):
