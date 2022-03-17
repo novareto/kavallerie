@@ -5,7 +5,9 @@ from kavallerie.contents import Model, Registry, Content
 PersonSchema = {
     "type": "object",
     "properties": {
-        "name": { "type": "string" },
+        "name": {
+            "type": "string"
+        },
     }
 }
 
