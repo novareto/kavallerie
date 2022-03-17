@@ -1,103 +1,54 @@
-import base64
-import hashlib
-import pyotp
-import secrets
-from typing import List, Callable
-from kavallerie.pipes.authentication import Filter
-from kavallerie.response import Response
-from kavallerie.request import Request, User
-from kavallerie.utils import unique
+import abc
+import typing as t
+from kavallerie.request import User, Request
 
 
-def security_bypass(urls: List[str]) -> Filter:
-    unprotected = frozenset(urls)
+class Source(abc.ABC):
 
-    def _filter(caller, request):
-        if request.path in unprotected:
-            return caller(request)
+    @abc.abstractmethod
+    def find(self,
+             credentials: t.Dict, request: Request) -> t.Optional[User]:
+        pass
 
-    return _filter
-
-
-def secured(path: str) -> Filter:
-
-    def _filter(caller, request):
-        if request.user is None:
-            return Response.redirect(request.script_name + path)
-
-    return _filter
+    @abc.abstractmethod
+    def fetch(self, uid: t.Any, request: Request) -> t.Optional[User]:
+        pass
 
 
-def TwoFA(path: str, checker: Callable[[Request], bool]) -> Filter:
+class Authenticator:
 
-    def _filter(caller, request):
-        if request.path == path:
-            return caller(request)
-        if not checker(request):
-            return Response.redirect(request.script_name + path)
+    user_key: str
+    sources: t.Iterable[Source]
 
-    return _filter
+    def __init__(self, user_key: str, sources: t.Iterable[Source]):
+        self.sources = sources
+        self.user_key = user_key
 
+    def from_credentials(self,
+                         request, credentials: dict) -> t.Optional[User]:
+        for source in self.sources:
+            user = source.find(credentials, request)
+            if user is not None:
+                return user
 
-class PasswordManager:
+    def identify(self, request) -> t.Optional[User]:
+        if request.user is not None:
+            return request.user
 
-    __slots__ = ('salt',)
+        if (session := request.utilities.get('http_session')) is not None:
+            if (userid := session.get(self.user_key, None)) is not None:
+                for source in self.sources:
+                    user = source.fetch(userid, request)
+                    if user is not None:
+                        request.user = user
+                        return user
 
-    def __init__(self, salt: str = None):
-        """if salt is provided, it needs to be a b64 string.
-        """
-        self.salt = salt or self.generate_salt()
+    def forget(self, request) -> t.NoReturn:
+        if (session := request.utilities.get('http_session')) is not None:
+            session.clear()
+        request.user = None
 
-    @staticmethod
-    def generate_salt() -> str:
-        return base64.b64encode(secrets.token_bytes(16)).decode('utf-8')
-
-    def create(self, word: str) -> str:
-        token = hashlib.pbkdf2_hmac(
-            'sha256',
-            word.encode('utf-8'),
-            base64.b64decode(self.salt),
-            27500,  # iterations
-            dklen=64
-        )
-        return base64.b64encode(token).decode('utf-8')
-
-    def verify(self, word: str, challenger: str) -> bool:
-        token = self.create(word)
-        if token == challenger:
-            return True
-        return False
-
-
-class TOTP:
-
-    def __init__(self, user: User):
-        self.user = user
-
-    @unique
-    def shared_key(self) -> bytes:
-        key = hashlib.sha256(str(self.user.id).encode("utf-8"))
-        return base64.b32encode(key.digest())
-
-    @unique
-    def TOTP(self) -> bytes:
-        """We use mostly default values for Google Authenticator compat.
-        """
-        return pyotp.TOTP(
-            self.shared_key,
-            name=str(self.user.id),
-        )
-
-    @unique
-    def OTP_URI(self) -> str:
-        return self.TOTP.provisioning_uri()
-
-    def generate_token(
-            self, digits=8, digest=hashlib.sha256, interval=60*60):  # 1h
-        return pyotp.TOTP(
-            self.shared_key,
-            name=str(self.user.id),
-            digits=digits,
-            digest=digest,
-            interval=interval
-        )
+    def remember(self, request, user: User) -> t.NoReturn:
+        if (session := request.utilities.get('http_session')) is not None:
+            session[self.user_key] = user.id
+        request.user = user
