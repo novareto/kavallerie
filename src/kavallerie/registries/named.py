@@ -1,5 +1,4 @@
 import typing as t
-import inspect
 
 
 Registry = t.TypeVar('Registry')

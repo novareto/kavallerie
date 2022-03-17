@@ -1,4 +1,3 @@
-from abc import ABCMeta
 import typing as t
 from collections import OrderedDict
 from prejudice.errors import ConstraintsErrors
@@ -132,7 +131,8 @@ class Actions:
                     if classifiers == action.classifiers:
                         yield action
 
-    def one_of(self, cls, *classifiers: str) -> t.Generator[Action, None, None]:
+    def one_of(self, cls,
+               *classifiers: str) -> t.Generator[Action, None, None]:
         if not classifiers:
             raise KeyError('`one_of` takes at least one classifier.')
         classifiers = set(classifiers)
@@ -191,7 +191,7 @@ class ContextualActions:
             context = self.request.app
         action = self.actions.get_action_for(context.__class__, name)
         if action is not None and \
-           action.evaluate(context=context, request=request) is None:
+           action.evaluate(context=context, request=self.request) is None:
             return ContextualAction(
                 context=context, request=self.request, action=action)
 
@@ -213,6 +213,6 @@ class ContextualActions:
                 self.actions.all_actions_for(context.__class__))
         actions.sort(key=order)
         for action in actions:
-            if action.evaluate(context=context, request=request) is None:
+            if action.evaluate(context=context, request=self.request) is None:
                 yield ContextualAction(
-                    context=context, request=request, action=action)
+                    context=context, request=self.request, action=action)
