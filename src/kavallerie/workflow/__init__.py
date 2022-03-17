@@ -1,6 +1,5 @@
 import enum
 import typing as t
-from collections import defaultdict
 from kavallerie.events import Subscribers
 from kavallerie.workflow.events import WorkflowTransitionEvent
 from kavallerie.workflow.components import (

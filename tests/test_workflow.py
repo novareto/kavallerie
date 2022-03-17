@@ -85,17 +85,18 @@ def test_publish_worflow():
     workflow = PublicationWorkflow('draft')
 
     item = Document()
-    workflow_item = workflow(item, role='some role')
-    assert workflow_item.state == workflow.get('draft')
-    assert not workflow_item.get_possible_transitions()
+    wfcontext = workflow(item, role='some role')
+    assert isinstance(wfcontext, WorkflowContext)
+    assert wfcontext.state == workflow.get('draft')
+    assert not wfcontext.get_possible_transitions()
 
     item.body = "Some text here"
-    assert not workflow_item.get_possible_transitions()
+    assert not wfcontext.get_possible_transitions()
 
-    workflow_item = workflow(item, role='owner')
-    assert workflow_item.get_possible_transitions() == (
+    wfcontext = workflow(item, role='owner')
+    assert wfcontext.get_possible_transitions() == (
         workflow.transitions[2],
     )
 
-    workflow_item.transition_to(PublicationWorkflow.states.submitted)
-    assert workflow_item.state == workflow.get('submitted')
+    wfcontext.transition_to(PublicationWorkflow.states.submitted)
+    assert wfcontext.state == workflow.get('submitted')

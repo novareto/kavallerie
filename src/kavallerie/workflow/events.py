@@ -1,4 +1,4 @@
-from typing import Any, Optional, Mapping
+from typing import Any, Mapping
 from kavallerie.events import Event
 from kavallerie.workflow.components import Transition
 
