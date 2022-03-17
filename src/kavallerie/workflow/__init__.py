@@ -1,7 +1,7 @@
 import enum
 import typing as t
-from abc import ABC, abstractproperty
 from collections import defaultdict
+from kavallerie.events import Subscribers
 from kavallerie.workflow.events import WorkflowTransitionEvent
 from kavallerie.workflow.components import (
     State, Stateful, Transition, Transitions
@@ -17,7 +17,7 @@ class WorkflowContext:
     def __init__(self,
                  workflow: 'Workflow',
                  item: Stateful,
-                 namespace: t.Mapping[str, Any]):
+                 namespace: t.Mapping[str, t.Any]):
         self.workflow = workflow
         self.item = item
         self.namespace = namespace
@@ -34,7 +34,7 @@ class WorkflowContext:
         return tuple(self.workflow.transitions.available(
              self.state, self.item, **self.namespace))
 
-    def get_transition(self, target: State) -> Optional[Transition]:
+    def get_transition(self, target: State) -> t.Optional[Transition]:
         target = self.workflow.states(target)  # idempotent
         return self.workflow.transitions.find(self.state, target)
 
@@ -56,15 +56,21 @@ class WorkflowContext:
 
 class Workflow:
 
-    context: t.ClassVar[Type[WorkflowContext]] = WorkflowContext
+    context: t.ClassVar[t.Type[WorkflowContext]] = WorkflowContext
     states: t.ClassVar[t.Type[WorkflowState]]
     transitions: t.ClassVar[Transitions]
 
     default_state: WorkflowState
     subscribers: Subscribers
 
-    def __init__(self, default_state: WorkflowState):
-        self.default_state = self.states[default_state]
+    def __init__(self, default_state: t.Union[WorkflowState, str]):
+        if isinstance(default_state, WorkflowState):
+            self.default_state = self.states(default_state)
+        elif isinstance(default_state, str):
+            self.default_state = self.states[default_state]
+        else:
+            raise TypeError(
+                f'`default_state` of wrong type: {type(default_state)}')
         self.subscribers = Subscribers()
 
     def __getitem__(self, name: str) -> WorkflowState:

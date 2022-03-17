@@ -1,6 +1,6 @@
 from typing import Any, Optional, Mapping
-from reiter.events.meta import Event
-from roughrider.workflow import Transition
+from kavallerie.events import Event
+from kavallerie.workflow.components import Transition
 
 
 class WorkflowTransitionEvent(Event):
