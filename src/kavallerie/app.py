@@ -9,7 +9,7 @@ from kavallerie.request import Request
 from kavallerie.response import Response
 from kavallerie.events import Subscribers
 from kavallerie.lifecycle import RouteFound, RequestCreated, ResponseCreated
-from roughrider.routing.components import NamedRoutes
+from kavallerie.routes import Routes
 
 
 @dataclass
@@ -35,7 +35,7 @@ class Application(horseman.meta.SentryNode):
 
 @dataclass
 class RoutingApplication(Application):
-    routes: NamedRoutes = field(default_factory=NamedRoutes)
+    routes: Routes = field(default_factory=Routes)
 
     def endpoint(self, request):
         route = self.routes.match_method(request.path, request.method)
