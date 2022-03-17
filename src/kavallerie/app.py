@@ -8,6 +8,7 @@ from kavallerie.pipeline import Pipeline
 from kavallerie.request import Request
 from kavallerie.response import Response
 from kavallerie.events import Subscribers
+from kavallerie.lifecycle import RouteFound, RequestCreated, ResponseCreated
 from roughrider.routing.components import NamedRoutes
 
 
@@ -27,6 +28,7 @@ class Application(horseman.meta.SentryNode):
 
     def resolve(self, path: str, environ: Environ) -> Response:
         request = self.request_factory(path, self, environ)
+        self.subscribers.notify(RequestCreated(self, request))
         response = self.pipeline.wrap(self.endpoint, self.config)(request)
         return response
 
@@ -37,12 +39,16 @@ class RoutingApplication(Application):
 
     def endpoint(self, request):
         route = self.routes.match_method(request.path, request.method)
-        if route is not None:
+        if route is None:
+            response = Response(404)
+        else:
+            self.subscribers.notify(RouteFound(self, request, route))
             try:
                 request.route = route
-                return route.endpoint(request, **route.params)
+                response = route.endpoint(request, **route.params)
             except HTTPError as error:
                 # FIXME: Log.
-                return Response(error.status, error.body)
+                response = Response(error.status, error.body)
 
-        return Response(404)
+        self.subscribers.notify(ResponseCreated(self, request, response))
+        return response

@@ -6,9 +6,6 @@ from prejudice.types import Predicate, Predicates
 from prejudice.utils import resolve_constraints
 
 
-MISSING = object()
-
-
 class Event(abc.ABC):
 
     @abc.abstractmethod
