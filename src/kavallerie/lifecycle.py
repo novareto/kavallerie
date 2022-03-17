@@ -35,10 +35,10 @@ class UserEvent(Event):
             self,
             user: User,
             request: t.Optional[Request] = None,
-            **namespace: t.Any):
+            context: t.Optional[t.Mapping] = None):
         self.user = user
         self.request = request
-        self.namespace = namespace
+        self.context = context
 
 
 class UserLoggedInEvent(UserEvent):

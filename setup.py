@@ -5,11 +5,12 @@ from setuptools import setup, find_packages
 version = "0.1.dev0"
 
 install_requires = [
+    'frozen_box',
+    'frozendict',
     'horseman',
     'http-session >= 0.2',
     'prejudice',
-    'frozendict',
-    'frozen_box',
+    'roughrider.routing',
     'transaction',
 ]
 

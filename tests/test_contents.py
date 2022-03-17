@@ -5,7 +5,9 @@ from kavallerie.contents import Model, Registry, Content
 PersonSchema = {
     "type": "object",
     "properties": {
-        "name": { "type": "string" },
+        "name": {
+            "type": "string"
+        },
     }
 }
 
@@ -50,7 +52,7 @@ def test_empty_registry():
 
 def test_registration():
     reg = Registry()
-    content = reg.register('person', Person)
+    content = reg.add('person', Person)
     assert content == Content(
         id='person',
         schema=PersonSchema,
