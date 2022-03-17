@@ -34,8 +34,8 @@ class UserEvent(Event):
     def __init__(
             self,
             user: User,
-            request: Optional[Request] = None,
-            **namespace: Any):
+            request: t.Optional[Request] = None,
+            **namespace: t.Any):
         self.user = user
         self.request = request
         self.namespace = namespace
@@ -66,7 +66,7 @@ class ObjectAddedEvent(ObjectEvent):
 
 class ObjectModifiedEvent(ObjectEvent):
 
-    def __init__(self, obj, data, request: Optional[Request] = None):
+    def __init__(self, obj, data, request: t.Optional[Request] = None):
         self.obj = obj
         self.data = data
         self.request = request

@@ -3,7 +3,7 @@ import typing as t
 from kavallerie.events import Subscribers
 from kavallerie.workflow.events import WorkflowTransitionEvent
 from kavallerie.workflow.components import (
-    State, Stateful, Transition, Transitions
+    Action, State, Stateful, Transition, Transitions
 )
 
 
@@ -82,3 +82,33 @@ class Workflow:
         if name is None:
             return self.default_state
         return self.states[name]
+
+
+class StateProperty:
+
+    def __init__(self, workflow: Workflow):
+        self.workflow = workflow
+
+    def __set__(self, inst, state: t.Union[WorkflowState, str]):
+        if isinstance(state, str):
+            state = self.workflow.states(state)
+        wf = self.workflow(inst)
+        wf.transition_to(state)
+
+    def __get__(self, inst, klass):
+        if inst is None:
+            return self
+        return self.workflow(inst).state
+
+
+__all__ = [
+    "Action",
+    "State",
+    "StateProperty",
+    "Stateful",
+    "Transition",
+    "Transitions",
+    "Workflow",
+    "WorkflowContext",
+    "WorkflowState",
+]
