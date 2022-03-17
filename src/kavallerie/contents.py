@@ -62,7 +62,7 @@ class Registry(collections.abc.Collection):
 
     def register(self, name: str, **metadata):
         def model_registration(model: Model) -> Model:
-            self.register(name, model, metadata)
+            self.add(name, model, metadata)
             return model
         return model_registration
 

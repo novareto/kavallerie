@@ -50,7 +50,7 @@ def test_empty_registry():
 
 def test_registration():
     reg = Registry()
-    content = reg.register('person', Person)
+    content = reg.add('person', Person)
     assert content == Content(
         id='person',
         schema=PersonSchema,
