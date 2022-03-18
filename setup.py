@@ -14,7 +14,12 @@ install_requires = [
     'transaction',
 ]
 
-test_requires = [
+plugin_requires = [
+    'networkx',
+    'importscan',
+]
+
+test_requires = plugin_requires + [
     'WebTest',
     'pytest',
     'smtpdfix',
@@ -48,5 +53,6 @@ setup(
     tests_require=test_requires,
     extras_require={
         'test': test_requires,
+        'plugin': plugin_requires,
     }
 )
