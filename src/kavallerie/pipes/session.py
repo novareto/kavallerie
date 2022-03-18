@@ -71,6 +71,9 @@ class HTTPSession(MiddlewareFactory):
                     tm = request.utilities.get('transaction_manager')
                     if tm is None or not tm.isDoomed():
                         session.persist()
+            elif session.new:
+                return response
+
             domain = request.environ['HTTP_HOST'].split(':', 1)[0]
             cookie = self.manager.cookie(
                 session.sid,
