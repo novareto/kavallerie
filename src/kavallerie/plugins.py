@@ -26,7 +26,7 @@ class Plugin:
 
     name: str
     dependencies: t.Iterable[str]
-    module: t.Optional[types.ModuleType] = None
+    modules: t.Optional[t.Iterable[types.ModuleType]] = None
     blueprints: t.Optional[t.NamedTuple] = None
 
     _hooks: t.Dict[str, Hook]
@@ -34,14 +34,14 @@ class Plugin:
     def __init__(
             self,
             name: str,
-            module: t.Optional[str] = None,
+            modules: t.Optional[t.Iterable[str]] = None,
             blueprints: t.Optional[Blueprints] = None,
             dependencies: t.Optional[t.Iterable[str]] = None
     ):
         self.name = name
-        if module is not None:
-            module = importlib.import_module(module)
-        self.module = module
+        if modules is not None:
+            modules = [importlib.import_module(m) for m in modules]
+        self.modules = modules
         if dependencies is None:
             self.dependencies = tuple()
         else:
@@ -91,8 +91,9 @@ class Plugin:
             print('already installed, skip')
             return
         try:
-            if self.module is not None:
-                importscan.scan(self.module)
+            if self.modules is not None:
+                for module in self.modules:
+                    importscan.scan(module)
             if self.blueprints:
                 for name, blueprints in self.blueprints._asdict().items():
                     if isinstance(blueprints, Blueprint):
