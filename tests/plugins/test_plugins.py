@@ -1,10 +1,6 @@
 import pytest
-from unittest.mock import Mock
 from kavallerie.plugins import Plugin, Plugins
-from kavallerie.app import Application, RoutingApplication
-from kavallerie import routes as routing
-from kavallerie.response import Response
-from kavallerie.registries import Blueprint
+from kavallerie.app import Application
 
 
 def test_plugins_dependencies_order():
