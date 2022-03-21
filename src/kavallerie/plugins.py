@@ -92,7 +92,7 @@ class Plugin:
             return
         try:
             if self.module is not None:
-                importscan(self.module)
+                importscan.scan(self.module)
             if self.blueprints:
                 for name, blueprints in self.blueprints._asdict().items():
                     if isinstance(blueprints, Blueprint):
@@ -172,5 +172,7 @@ class Plugins:
         }
         Logger.info(
             f'Plugins needs installing: {", ".join(plugins.keys())}')
+        print(self.ordered)
         for name in self.ordered:
-            plugins[name].install(app)
+            if name in plugins:
+                plugins[name].install(app)
