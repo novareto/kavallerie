@@ -40,7 +40,7 @@ class Plugin:
     ):
         self.name = name
         if modules is not None:
-            modules = [importlib.import_module(m) for m in modules]
+            modules = tuple((importlib.import_module(m) for m in modules))
         self.modules = modules
         if dependencies is None:
             self.dependencies = tuple()

@@ -8,10 +8,18 @@ from kavallerie.registries import Blueprint
 
 
 def test_empty_plugin():
-
     plugin = Plugin('my empty plugin')
     assert plugin.dependencies == ()
-    assert plugin.module is None
+    assert plugin.modules is None
+    assert plugin.blueprints is None
+
+
+def test_plugin_modules():
+    import typing
+
+    plugin = Plugin('my empty plugin', modules=['pytest', 'typing'])
+    assert plugin.dependencies == ()
+    assert plugin.modules == (pytest, typing)
     assert plugin.blueprints is None
 
 
