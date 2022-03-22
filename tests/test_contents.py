@@ -74,6 +74,9 @@ def test_registration():
     assert list(reg) == []
     assert 'person' not in reg
 
+    with pytest.raises(KeyError):
+        reg.get_schema('person')
+
 
 def test_decorator():
     reg = Registry()
