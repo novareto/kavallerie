@@ -156,7 +156,12 @@ class Plugins:
             eps = entry_points()
             if (plugin_definitions := eps.get(key)) is not None:
                 for definition in plugin_definitions:
-                    yield definition.load()
+                    loaded = definition.load()
+                    Logger.debug(
+                        f"Loading plugin {loaded.name}."
+                    )
+                    yield loaded
+
         return cls(entrypoints_plugins())
 
     def apply(self, app, *names):

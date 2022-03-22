@@ -5,6 +5,7 @@ import horseman.parsers
 import horseman.types
 import horseman.http
 import horseman.meta
+from horseman.parsers import Data
 from http_session.session import Session
 from roughrider.routing.meta import Route
 from kavallerie.utils import unique
@@ -68,7 +69,8 @@ class Request(horseman.meta.Overhead):
         if self.content_type:
             self._data = horseman.parsers.parser(
                 self.environ['wsgi.input'], self.content_type)
-
+        else:
+            self._data = Data()
         return self._data
 
     @unique
