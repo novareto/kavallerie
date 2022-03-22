@@ -8,6 +8,7 @@ import horseman.meta
 from horseman.parsers import Data
 from http_session.session import Session
 from roughrider.routing.meta import Route
+from roughrider.cors.policy import CORSPolicy
 from kavallerie.utils import unique
 
 
@@ -25,6 +26,7 @@ class Request(horseman.meta.Overhead):
         'path',
         'user',
         'route',
+        'cors_policy',
         'script_name',
         'http_session',
         'utilities',
@@ -40,6 +42,7 @@ class Request(horseman.meta.Overhead):
     script_name: str
     utilities: dict
 
+    cors_policy: t.Optional[CORSPolicy]
     user: t.Optional[User]
     route: t.Optional[Route]
     _data: t.Optional[horseman.parsers.Data]
@@ -51,6 +54,7 @@ class Request(horseman.meta.Overhead):
                  http_session: Session = None,
                  user: t.Optional[User] = None,
                  utilities: t.Optional[t.Mapping] = None,
+                 cors_policy: t.Optional[CORSPolicy] = None,
                  route: t.Optional[Route] = None):
         self._data = ...
         self.app = app
@@ -59,6 +63,7 @@ class Request(horseman.meta.Overhead):
         self.environ = environ
         self.method = environ['REQUEST_METHOD'].upper()
         self.route = route
+        self.cors_policy = cors_policy
         self.script_name = urllib.parse.quote(environ['SCRIPT_NAME'])
         self.utilities = utilities is not None and utilities or {}
 

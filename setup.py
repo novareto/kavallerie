@@ -10,6 +10,7 @@ install_requires = [
     'horseman',
     'http-session >= 0.2',
     'prejudice',
+    'roughrider.cors',
     'roughrider.routing',
     'transaction',
 ]
