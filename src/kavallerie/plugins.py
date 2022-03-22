@@ -176,7 +176,7 @@ class Plugins:
             plugin.name: plugin for plugin in itertools.chain(*(
                 self._store[name].__lineage__ for name in names))
         }
-        Logger.info(
+        Logger.debug(
             f'Plugins needs installing: {", ".join(plugins.keys())}')
         print(self.ordered)
         for name in self.ordered:

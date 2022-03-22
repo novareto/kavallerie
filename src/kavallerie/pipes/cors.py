@@ -14,7 +14,7 @@ def CORS(handler: Handler):
         # We intercept the preflight.
         # If a route was possible registered for OPTIONS,
         # this will override it.
-        Logger.debug('Cors policy found: crafting preflight answer.')
+        Logger.debug('Cors policy found: crafting preflight response.')
         origin = request.environ.get('ORIGIN')
         acr_method = request.environ.get('ACCESS_CONTROL_REQUEST_METHOD')
         acr_headers = request.environ.get('ACCESS_CONTROL_REQUEST_HEADERS')

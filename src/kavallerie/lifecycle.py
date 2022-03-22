@@ -1,32 +1,6 @@
 import typing as t
-from horseman.meta import Node
 from kavallerie.events import Event
 from kavallerie.request import Request, User
-from kavallerie.response import Response
-from roughrider.routing.meta import Route
-
-
-class RouteFound(Event):
-
-    def __init__(self, app: Node, request: Request, route: Route):
-        self.app = app
-        self.route = route
-        self.request = request
-
-
-class RequestCreated(Event):
-
-    def __init__(self, app: Node, request: Request):
-        self.app = app
-        self.request = request
-
-
-class ResponseCreated(Event):
-
-    def __init__(self, app: Node, request: Request, response: Response):
-        self.app = app
-        self.request = request
-        self.response = response
 
 
 class UserEvent(Event):
