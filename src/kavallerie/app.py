@@ -27,8 +27,7 @@ class Application(horseman.meta.SentryNode):
 
     def resolve(self, path: str, environ: Environ) -> Response:
         request = self.request_factory(path, self, environ)
-        response = self.pipeline.wrap(self.endpoint, self.config)(request)
-        return response
+        return self.pipeline.wrap(self.endpoint, self.config)(request)
 
 
 @dataclass
