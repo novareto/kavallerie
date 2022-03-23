@@ -88,7 +88,7 @@ class Plugin:
         if installed is None:
             installed = app.__installed_plugins__ = set()
         elif self.name in installed:
-            print('already installed, skip')
+            Logger.debug(f'{self.name!r} already installed: skip.')
             return
         try:
             if self.modules is not None:
@@ -120,7 +120,6 @@ class Plugin:
 
 class Plugins:
 
-    logger: logging.Logger
     _store: t.Mapping[str, Plugin]
     ordered: t.Iterable[str]
 
@@ -178,7 +177,6 @@ class Plugins:
         }
         Logger.debug(
             f'Plugins needs installing: {", ".join(plugins.keys())}')
-        print(self.ordered)
         for name in self.ordered:
             if name in plugins:
                 plugins[name].install(app)
