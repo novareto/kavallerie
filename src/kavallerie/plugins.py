@@ -83,7 +83,7 @@ class Plugin:
         self._hooks['on_uninstall'].append(func)
         return func
 
-    def install(self, app: Application):
+    def install(self, app: Application) -> Application:
         installed = getattr(app, '__installed_plugins__', None)
         if installed is None:
             installed = app.__installed_plugins__ = set()
@@ -116,6 +116,10 @@ class Plugin:
         else:
             installed.add(self.name)
             Logger.info(f"Plugin {self.name} installed with success.")
+        return app
+
+    __call__ = install
+
 
 
 class Plugins:
