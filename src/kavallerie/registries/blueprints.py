@@ -1,5 +1,5 @@
-import typing as t
 import inspect
+import typing as t
 
 
 Registry = t.TypeVar('Registry')
@@ -55,3 +55,5 @@ class Blueprint:
         for item in self.items:
             args, kwargs = item.payload
             handler(*args, **kwargs)(item.value)
+
+    __call__ = apply

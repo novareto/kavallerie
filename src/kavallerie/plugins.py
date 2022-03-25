@@ -70,13 +70,24 @@ class Plugin:
     def __repr__(self):
         return f'<Plugin {self.name!r}>'
 
-    def on_install(self, func: Hook) -> Hook:
-        self._hooks['on_install'].append(func)
+    def before_install(self, func: Hook) -> Hook:
+        self._hooks['before_install'].append(func)
         return func
 
-    def on_uninstall(self, func: Hook) -> Hook:
-        self._hooks['on_uninstall'].append(func)
+    def after_install(self, func: Hook) -> Hook:
+        self._hooks['after_install'].append(func)
         return func
+
+    def before_uninstall(self, func: Hook) -> Hook:
+        self._hooks['before_uninstall'].append(func)
+        return func
+
+    def after_uninstall(self, func: Hook) -> Hook:
+        self._hooks['after_uninstall'].append(func)
+        return func
+
+    def uninstall(self, app: Application) -> Application:
+        raise NotImplementedError('Uninstall is not yet implemented.')
 
     def install(self, app: Application) -> Application:
         installed = getattr(app, '__installed_plugins__', None)
@@ -90,6 +101,9 @@ class Plugin:
             dep.install(app)
 
         try:
+            if 'before_install' in self._hooks:
+                for hook in self._hooks['before_install']:
+                    hook(self, app)
             if self.modules is not None:
                 for module in self.modules:
                     importscan.scan(module)
@@ -103,8 +117,8 @@ class Plugin:
                             f'Unknown target registry {name} on {app}.')
                     for blueprint in blueprints:
                         blueprint.apply(target)
-            if 'on_install' in self._hooks:
-                for hook in self._hooks['on_install']:
+            if 'after_install' in self._hooks:
+                for hook in self._hooks['after_install']:
                     hook(self, app)
         except Exception:
             Logger.error(
