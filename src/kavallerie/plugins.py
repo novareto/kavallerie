@@ -1,9 +1,4 @@
-try:
-    import networkx
-    import importscan
-except ImportError:
-    raise RuntimeError('Plugins require `networkx`.')
-
+import importscan
 import itertools
 import typing as t
 import importlib
@@ -90,6 +85,10 @@ class Plugin:
         elif self.name in installed:
             Logger.debug(f'{self.name!r} already installed: skip.')
             return
+
+        for dep in self.dependencies:
+            dep.install(app)
+
         try:
             if self.modules is not None:
                 for module in self.modules:
@@ -128,30 +127,9 @@ class Plugins:
     ordered: t.Iterable[str]
 
     def __init__(self, candidates: t.Iterable[Plugin]):
-        stack = {}
-        plugins = {}
-        for candidate in candidates:
-            for plugin in candidate.__lineage__:
-                existing = plugins.get(plugin.name)
-                if existing is None:
-                    plugins[plugin.name] = plugin
-                elif existing is not plugin:
-                    raise KeyError(
-                        f'Trying to register {plugin!r} as {plugin.name}.'
-                        f'This name is already taken by {existing!r}.'
-                    )
-                stack[plugin.name] = [
-                    dep.name for dep in plugin.dependencies]
-
-        graph = networkx.DiGraph(stack)
-        if not networkx.is_directed_acyclic_graph(graph):
-            raise LookupError(
-                'Registered plugins create a circular dependency graph.')
-
-        self._store = plugins
-        self.ordered = tuple(reversed(
-            tuple(networkx.topological_sort(graph))
-        ))
+        self._store = dict(
+            (candidate.name, candidate) for candidate in candidates
+        )
 
     @classmethod
     def from_entrypoints(cls, key='kavallerie.plugins'):
@@ -167,20 +145,17 @@ class Plugins:
 
         return cls(entrypoints_plugins())
 
-    def apply(self, app, *names):
+    def install_by_name(self, app, *names):
         to_install = frozenset(names)
-        available = frozenset(self.ordered)
+        available = frozenset(self._store.keys())
         missing = to_install - available
 
         if missing:
             raise LookupError(f'Missing plugins: {", ".join(missing)!r}.')
 
-        plugins = {
-            plugin.name: plugin for plugin in itertools.chain(*(
-                self._store[name].__lineage__ for name in names))
-        }
-        Logger.debug(
-            f'Plugins needs installing: {", ".join(plugins.keys())}')
-        for name in self.ordered:
-            if name in plugins:
-                plugins[name].install(app)
+        for name in names:
+            self._store[name].install(app)
+
+    def __call__(self, app, *plugins: Plugin):
+        for plugin in plugins:
+            plugin.install(app)

@@ -9,18 +9,14 @@ install_requires = [
     'frozendict',
     'horseman',
     'http-session >= 0.2',
+    'importscan',
     'prejudice',
     'roughrider.cors',
     'roughrider.routing',
     'transaction',
 ]
 
-plugin_requires = [
-    'networkx',
-    'importscan',
-]
-
-test_requires = plugin_requires + [
+test_requires = [
     'WebTest',
     'pytest',
     'smtpdfix',
@@ -58,6 +54,5 @@ setup(
     tests_require=test_requires,
     extras_require={
         'test': test_requires,
-        'plugin': plugin_requires,
     }
 )
