@@ -49,7 +49,7 @@ def test_plugin_install_with_hooks():
     app = Application()
     plugin = Plugin('my empty plugin')
 
-    @plugin.on_install
+    @plugin.before_install
     def installer(plugin, app):
         tracker(plugin, app)
 
