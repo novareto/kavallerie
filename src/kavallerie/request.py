@@ -5,6 +5,7 @@ import horseman.parsers
 import horseman.types
 import horseman.http
 import horseman.meta
+from horseman.datastructures import FormData
 from horseman.parsers import Data
 from http_session.session import Session
 from roughrider.routing.meta import Route
@@ -118,3 +119,6 @@ class Request(horseman.meta.Overhead):
             if qs:
                 return f"{url}{path_info}?{qs}"
         return f"{url}{path_info}"
+
+
+__all__ = ['FormData', 'Request', 'User']
