@@ -6,20 +6,22 @@ version = "0.1.dev0"
 
 install_requires = [
     'frozen_box',
-    'frozendict',
     'horseman',
     'http-session >= 0.2',
     'importscan',
+    'itsdangerous',
     'prejudice',
     'roughrider.cors',
     'roughrider.routing',
     'transaction',
+    'zope.interface',
 ]
 
 test_requires = [
     'WebTest',
     'pytest',
     'smtpdfix',
+    'frozendict',
     'sqlalchemy.orm',
     'zope.sqlalchemy',
 ]
