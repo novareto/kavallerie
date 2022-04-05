@@ -26,7 +26,10 @@ class Application(horseman.meta.SentryNode):
         raise NotImplementedError('Implement your own.')
 
     def resolve(self, path: str, environ: Environ) -> Response:
-        request = self.request_factory(path, self, environ)
+        # Path can be an empty string.
+        # Horseman will simply pass along the string as it was parsed.
+        # Empty PATH_INFO is perfectly valid in WSGI, so we handle it.
+        request = self.request_factory(path or '/', self, environ)
         return self.pipeline.wrap(self.endpoint, self.config)(request)
 
 

@@ -5,7 +5,7 @@ setup(
     name='kavallerie',
     install_requires = [
         'frozen_box',
-        'horseman',
+        'horseman >= 0.3',
         'http-session >= 0.2',
         'importscan',
         'itsdangerous',
