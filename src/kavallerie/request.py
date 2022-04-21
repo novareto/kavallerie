@@ -62,10 +62,12 @@ class Request(horseman.meta.Overhead):
         self.path = path
         self.user = user
         self.environ = environ
-        self.method = environ['REQUEST_METHOD'].upper()
+        self.method = environ.get('REQUEST_METHOD', 'GET').upper()
         self.route = route
         self.cors_policy = cors_policy
-        self.script_name = urllib.parse.quote(environ['SCRIPT_NAME'])
+        self.script_name = urllib.parse.quote(
+            environ.get('SCRIPT_NAME', '')
+        )
         self.utilities = utilities is not None and utilities or {}
 
     def extract(self) -> horseman.parsers.Data:
@@ -95,7 +97,7 @@ class Request(horseman.meta.Overhead):
 
     @unique
     def application_uri(self):
-        scheme = self.environ['wsgi.url_scheme']
+        scheme = self.environ.get('wsgi.url_scheme', 'http')
         http_host = self.environ.get('HTTP_HOST')
         if not http_host:
             server = self.environ['SERVER_NAME']
@@ -115,7 +117,7 @@ class Request(horseman.meta.Overhead):
         url = self.application_uri
         path_info = urllib.parse.quote(self.environ.get('PATH_INFO', ''))
         if include_query:
-            qs = urllib.parse.quote(self.environ.get('QUERY_STRING'))
+            qs = urllib.parse.quote(self.environ.get('QUERY_STRING', ''))
             if qs:
                 return f"{url}{path_info}?{qs}"
         return f"{url}{path_info}"
