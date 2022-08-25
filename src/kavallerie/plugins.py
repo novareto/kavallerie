@@ -1,5 +1,4 @@
 import importscan
-import itertools
 import typing as t
 import importlib
 import logging
@@ -132,7 +131,6 @@ class Plugin:
         return app
 
     __call__ = install
-
 
 
 class Plugins:
