@@ -5,7 +5,8 @@ setup(
     name='kavallerie',
     install_requires = [
         'frozen_box',
-        'horseman >= 0.3',
+        'frozendict',
+        'horseman >= 0.6',
         'http-session >= 0.2',
         'importscan',
         'itsdangerous',
@@ -19,8 +20,8 @@ setup(
         'test': [
             'WebTest',
             'pytest',
+            'pyhamcrest',
             'smtpdfix',
-            'frozendict',
             'sqlalchemy.orm',
             'zope.sqlalchemy',
         ]
