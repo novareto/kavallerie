@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+0.3 (2022-08-25)
+----------------
+
+  * Based on the changes of `Horseman` 0.6 : the `FormData`,
+    `TypeCastingDict` and `Query` classes were moved in-house.
+
 0.2.1 (2022-04-21)
 ------------------
 
