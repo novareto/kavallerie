@@ -5,7 +5,7 @@ setup(
     name='kavallerie',
     install_requires = [
         'frozen_box',
-        'horseman >= 0.3',
+        'horseman >= 0.6',
         'http-session >= 0.2',
         'importscan',
         'itsdangerous',
@@ -14,6 +14,7 @@ setup(
         'roughrider.routing',
         'transaction',
         'zope.interface',
+        'frozendict',
     ],
     extras_require={
         'test': [

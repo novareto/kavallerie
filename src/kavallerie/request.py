@@ -5,12 +5,27 @@ import horseman.parsers
 import horseman.types
 import horseman.http
 import horseman.meta
-from horseman.datastructures import FormData
 from horseman.parsers import Data
 from http_session.session import Session
 from roughrider.routing.meta import Route
 from roughrider.cors.policy import CORSPolicy
 from kavallerie.utils import unique
+from kavallerie.datastructures import TypeCastingDict
+
+
+class Query(TypeCastingDict):
+
+    @classmethod
+    def from_value(cls, value: str):
+        return cls(urllib.parse.parse_qsl(
+            value, keep_blank_values=True, strict_parsing=True))
+
+    @classmethod
+    def from_environ(cls, environ: dict):
+        qs = environ.get('QUERY_STRING', '')
+        if qs:
+            return cls.from_value(qs)
+        return cls()
 
 
 class User(abc.ABC):
@@ -39,7 +54,7 @@ class Request(horseman.meta.Overhead):
     environ: horseman.types.Environ
     method: horseman.types.HTTPMethod
     path: str
-    query: horseman.http.Query
+    query: Query
     script_name: str
     utilities: dict
 
@@ -83,7 +98,7 @@ class Request(horseman.meta.Overhead):
 
     @unique
     def query(self):
-        return horseman.http.Query.from_environ(self.environ)
+        return Query.from_environ(self.environ)
 
     @unique
     def cookies(self):
@@ -123,4 +138,4 @@ class Request(horseman.meta.Overhead):
         return f"{url}{path_info}"
 
 
-__all__ = ['FormData', 'Request', 'User']
+__all__ = ['Request', 'User', 'Query']
