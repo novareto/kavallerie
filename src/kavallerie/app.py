@@ -11,13 +11,17 @@ from kavallerie.events import Subscribers
 from kavallerie.routes import Routes
 
 
+RequestFactory = t.Callable[
+    [str, horseman.meta.SentryNode, Environ], Request]
+
+
 @dataclass
 class Application(horseman.meta.SentryNode):
     config: dict = field(default_factory=dict)
     utilities: dict = field(default_factory=dict)
     pipeline: Pipeline = field(default_factory=Pipeline)
     subscribers: Subscribers = field(default_factory=Subscribers)
-    request_factory: t.Type[Request] = Request
+    request_factory: RequestFactory = Request
 
     def handle_exception(self, exc_info: ExceptionInfo, environ: Environ):
         pass

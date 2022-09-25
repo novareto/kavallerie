@@ -4,7 +4,7 @@ from kavallerie.request import Request
 from kavallerie.response import Response
 
 
-HTTPErrorCatcher = t.Callable[[Exception, Request], t.Optional[Response]]
+HTTPErrorCatcher = t.Callable[[Request, Exception], t.Optional[Response]]
 
 
 class HTTPErrorCatchers(t.Dict[int, HTTPErrorCatcher]):
@@ -17,7 +17,7 @@ class HTTPErrorCatchers(t.Dict[int, HTTPErrorCatcher]):
                 catcher = self.get(exc.status)
                 if catcher is None:
                     raise exc
-                response = catcher(exc, request)
+                response = catcher(request, exc)
                 if response is None:
                     raise exc
             return response
