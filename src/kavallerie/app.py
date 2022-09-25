@@ -40,10 +40,6 @@ class RoutingApplication(Application):
     def endpoint(self, request) -> Response:
         route = self.routes.match_method(request.path, request.method)
         if route is None:
-            return Response(404)
-        try:
-            request.route = route
-            return route.endpoint(request, **route.params)
-        except HTTPError as error:
-            # FIXME: Log.
-            return Response(error.status, error.body)
+            raise HTTPError(404)
+        request.route = route
+        return route.endpoint(request, **route.params)

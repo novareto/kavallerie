@@ -1,3 +1,5 @@
+import pytest
+from horseman.http import HTTPError
 from kavallerie.app import RoutingApplication
 from kavallerie.response import Response
 
@@ -16,5 +18,6 @@ def test_application_path_handling(environ):
     response = application.resolve('', environ)
     assert response.status == 200
 
-    response = application.resolve('/test', environ)
-    assert response.status == 404
+    with pytest.raises(HTTPError) as exc:
+        application.resolve('/test', environ)
+    assert exc.value.status == 404
