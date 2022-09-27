@@ -1,13 +1,12 @@
 import abc
 import typing as t
 import bisect
-from functools import reduce
+from functools import reduce, wraps
 from frozen_box import freeze
-from kavallerie.request import Request
 from kavallerie.response import Response
 
 
-Handler = t.Callable[[Request], Response]
+Handler = t.Callable
 Middleware = t.Callable[[Handler, t.Optional[t.Mapping]], Handler]
 
 
@@ -29,6 +28,11 @@ class Pipeline:
             (m[1] for m in reversed(self._chain)),
             wrapped
         )
+
+    def __call__(self, conf: t.Optional[t.Mapping] = None):
+        def wrapper(wrapped: Handler):
+            return self.wrap(wrapped, conf)
+        return wrapper
 
     def add(self, middleware: Middleware, order: int = 0):
         insert = (order, middleware)
