@@ -26,6 +26,7 @@ class Authentication(MiddlewareFactory):
                  globalconf: t.Optional[t.Mapping] = None):
 
         def authentication_middleware(request):
+            assert isinstance(request, Request)
             request.utilities['authentication'] = self.authenticator
             _ = self.authenticator.identify(request)
             if self.config.filters:

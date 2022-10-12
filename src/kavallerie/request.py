@@ -11,6 +11,8 @@ from roughrider.routing.meta import Route
 from roughrider.cors.policy import CORSPolicy
 from kavallerie.utils import unique
 from kavallerie.datastructures import TypeCastingDict
+from kavallerie import meta
+from kavallerie.meta import User  # backward compatibility
 
 
 class Query(TypeCastingDict):
@@ -28,24 +30,15 @@ class Query(TypeCastingDict):
         return cls()
 
 
-class User(abc.ABC):
-    id: t.Union[str, int]
+class Request(meta.Request, horseman.meta.Overhead):
 
-
-class Request(horseman.meta.Overhead):
-
-    __slots__ = (
+    __slots__ = meta.Request.__slots__ + (
         '_data',
-        'app',
+        'cors_policy',
         'environ',
         'method',
-        'path',
-        'user',
         'route',
-        'cors_policy',
         'script_name',
-        'http_session',
-        'utilities',
     )
 
     app: horseman.meta.Node
@@ -56,26 +49,18 @@ class Request(horseman.meta.Overhead):
     path: str
     query: Query
     script_name: str
-    utilities: dict
-
     cors_policy: t.Optional[CORSPolicy]
-    user: t.Optional[User]
     route: t.Optional[Route]
     _data: t.Optional[horseman.parsers.Data]
 
-    def __init__(self,
-                 path: str,
-                 app: horseman.meta.Node,
+    def __init__(self, app,
                  environ: horseman.types.Environ,
-                 http_session: Session = None,
-                 user: t.Optional[User] = None,
-                 utilities: t.Optional[t.Mapping] = None,
                  cors_policy: t.Optional[CORSPolicy] = None,
-                 route: t.Optional[Route] = None):
+                 route: t.Optional[Route] = None,
+                 **kwargs
+                 ):
+        meta.Request.__init__(self, app, **kwargs)
         self._data = ...
-        self.app = app
-        self.path = path
-        self.user = user
         self.environ = environ
         self.method = environ.get('REQUEST_METHOD', 'GET').upper()
         self.route = route
@@ -83,7 +68,6 @@ class Request(horseman.meta.Overhead):
         self.script_name = urllib.parse.quote(
             environ.get('SCRIPT_NAME', '')
         )
-        self.utilities = utilities is not None and utilities or {}
 
     def extract(self) -> horseman.parsers.Data:
         if self._data is not ...:
@@ -95,6 +79,12 @@ class Request(horseman.meta.Overhead):
         else:
             self._data = Data()
         return self._data
+
+    @unique
+    def path(self):
+        if path := self.environ.get('PATH_INFO'):
+            return path.encode('latin-1').decode('utf-8')
+        return '/'
 
     @unique
     def query(self):
@@ -138,4 +128,4 @@ class Request(horseman.meta.Overhead):
         return f"{url}{path_info}"
 
 
-__all__ = ['Request', 'User', 'Query']
+__all__ = ['Request', 'Query']

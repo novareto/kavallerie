@@ -5,16 +5,9 @@ from kavallerie.request import Request
 from kavallerie.response import Response
 
 
-def is_bad_response(request, response):
-    return response.status >= 400
-
-
 class Transaction(MiddlewareFactory):
 
-    id = 'transaction_manager'
-
     class Configuration(t.NamedTuple):
-        veto: t.Callable[[Request, Response], bool] = is_bad_response
         factory: t.Callable[[], TransactionManager] = (
             lambda: TransactionManager(explicit=True)
         )
@@ -30,10 +23,11 @@ class Transaction(MiddlewareFactory):
                 request.utilities['transaction_manager'] = manager
 
             txn = manager.begin()
-            txn.note(request.path)
             try:
                 response = handler(request)
-                if txn.isDoomed() or self.config.veto(request, response):
+                if txn.isDoomed() or (
+                        isinstance(response, Response)
+                        and response.status >= 400):
                     txn.abort()
                 else:
                     txn.commit()
