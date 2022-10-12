@@ -7,6 +7,7 @@ CHANGES
   * `Request` no longer takes path as an arg.
     It uses the environ to compute.
   * Added `Request` abstract class to implement non WSGI requests.
+  * Using `gelidum` instead of `frozen_box`
 
 
 0.3 (2022-08-25)
