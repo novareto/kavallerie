@@ -2,7 +2,7 @@ import abc
 import typing as t
 import bisect
 from functools import reduce, wraps
-from frozen_box import freeze
+from gelidum import freeze
 from kavallerie.response import Response
 
 

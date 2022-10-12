@@ -4,8 +4,8 @@ from setuptools import setup
 setup(
     name='kavallerie',
     install_requires = [
-        'frozen_box',
         'frozendict',
+        'gelidum',
         'horseman >= 0.6',
         'http-session >= 0.2',
         'importscan',

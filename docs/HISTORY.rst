@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+0.4 (2022-10-12)
+----------------
+
+  * `Request` no longer takes path as an arg.
+    It uses the environ to compute.
+  * Added `Request` abstract class to implement non WSGI requests.
+
+
 0.3 (2022-08-25)
 ----------------
 
