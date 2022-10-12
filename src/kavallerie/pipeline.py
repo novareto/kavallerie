@@ -60,7 +60,6 @@ class Pipeline:
 
 class MiddlewareFactory(abc.ABC, Middleware):
 
-    id: t.ClassVar[str]
     Configuration: t.ClassVar[t.Type] = None
 
     def __init__(self, **kwargs):

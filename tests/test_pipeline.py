@@ -1,9 +1,10 @@
 import pytest
+from gelidum.collections import frozendict, frozenlist
 from webtest import TestApp as WSGIApp
 from kavallerie.response import Response
 from kavallerie.request import Request
 from kavallerie.app import RoutingApplication
-from kavallerie.pipeline import Pipeline
+from kavallerie.pipeline import Pipeline, MiddlewareFactory
 
 
 def handler(request):
@@ -74,3 +75,28 @@ def test_pipeline_add_remove():
 
     with pytest.raises(KeyError):
         pipeline.remove(capitalize, order=1)
+
+
+def test_middleware_factory_config_freeze():
+
+    called = []
+
+    class MF(MiddlewareFactory):
+        def __post_init__(self):
+            called.append(True)
+
+        def __call__(self, handler, appconf):
+            return handler
+
+    mf = MF(
+        this='that', foo='bar', somestuff={'a': 'b'}, someother=[1, 2, 3])
+    assert called == [True]
+    assert isinstance(mf.config, frozendict)
+    assert isinstance(mf.config['somestuff'], frozendict)
+    assert isinstance(mf.config['someother'], frozenlist)
+    assert mf.config == {
+        'foo': 'bar',
+        'someother': (1, 2, 3),
+        'somestuff': {'a': 'b'},
+        'this': 'that'
+    }
