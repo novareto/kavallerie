@@ -11,7 +11,7 @@ def test_auth(environ, http_session_store):
     def handler(request):
         return Response(201)
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     authentication = Authentication(
         sources=[DictSource({'admin': 'admin'})])
     store = http_session_store()
@@ -58,7 +58,7 @@ def test_filter(environ):
             DictSource({'test': 'test'}),
         ])
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     request.user = authentication.authenticator.from_credentials(request, {
         'username': 'admin',
         'password': 'admin'
@@ -79,7 +79,7 @@ def test_secured_filter(environ):
     def handler(request):
         return Response(201)
 
-    request = Request('/test', app=None, environ=environ)
+    request = Request(None, environ=environ)
     response = secured('/login')(handler, request)
     assert response.status == 303
     assert response.headers['Location'] == '/login'
@@ -100,11 +100,13 @@ def test_security_bypass_filter(environ):
     def handler(request):
         return Response(201)
 
-    request = Request('/login', app=None, environ=environ)
+    request = Request(None, environ=environ)
+    request.path = '/login'
     response = security_bypass(['/login'])(handler, request)
     assert response.status == 201
 
-    request = Request('/test', app=None, environ=environ)
+    request = Request(None, environ=environ)
+    request.path = '/test'
     response = security_bypass('/login')(handler, request)
     assert response is None
 
@@ -117,16 +119,19 @@ def test_twoFA_filter(environ):
     def handler(request):
         return Response(201)
 
-    request = Request('/index', app=None, environ=environ)
+    request = Request(None, environ=environ)
+    request.path = '/index'
     response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
     assert response.status == 303
     assert response.headers['Location'] == '/sms_qr_code'
 
-    request = Request('/sms_qr_code', app=None, environ=environ)
+    request = Request(None, environ=environ)
+    request.path = '/sms_qr_code'
     response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
     assert response.status == 201
 
-    request = Request('/index', app=None, environ=environ)
+    request = Request(None, environ=environ)
     request.twoFA = True
+    request.path = '/index'
     response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
     assert response is None

@@ -5,7 +5,7 @@ from kavallerie.testing import DictSource
 
 def test_source(environ):
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     authenticator = Authenticator(
         'user', [
             DictSource({'admin': 'admin'}),
@@ -27,7 +27,7 @@ def test_source(environ):
 
 def test_several_sources(environ):
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     authenticator = Authenticator(
         'user', [
             DictSource({'admin': 'admin'}),

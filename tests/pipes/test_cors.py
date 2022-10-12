@@ -16,7 +16,7 @@ def test_preflight(environ):
     )
 
     # Normal request, pass through
-    request = Request('/', app=None, environ=environ, cors_policy=policy)
+    request = Request(None, environ=environ, cors_policy=policy)
     response = CORS(handler)(request)
     assert response.status == 204
 
@@ -25,7 +25,7 @@ def test_preflight(environ):
         **environ,
         'REQUEST_METHOD': 'OPTIONS'
     }
-    request = Request('/', app=None, environ=opts_env, cors_policy=policy)
+    request = Request(None, environ=opts_env, cors_policy=policy)
     response = CORS(handler)(request)
     assert response.status == 200
     assert dict(response.headers.coalesced_items()) == {
@@ -39,7 +39,7 @@ def test_preflight(environ):
         'REQUEST_METHOD': 'OPTIONS',
         'ORIGIN': '*'
     }
-    request = Request('/', app=None, environ=opts_env, cors_policy=policy)
+    request = Request(None, environ=opts_env, cors_policy=policy)
     response = CORS(handler)(request)
     assert response.status == 200
     assert dict(response.headers.coalesced_items()) == {

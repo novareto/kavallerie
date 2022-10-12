@@ -23,7 +23,7 @@ class Application(meta.Application, horseman.meta.SentryNode):
 
     def resolve(self, path: str, environ: Environ) -> Response:
         request = self.request_factory(self, environ)
-        request.path = path
+        request.path = path or '/'
         return self.pipeline.wrap(self.endpoint, self.config)(request)
 
 

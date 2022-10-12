@@ -11,7 +11,8 @@ def test_exception(environ, transaction_manager):
 
     manager = transaction_manager()
     request = Request(
-        '/', app=None, environ=environ,
+        app=None,
+        environ=environ,
         utilities={
             'transaction_manager': manager
         }

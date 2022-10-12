@@ -21,13 +21,13 @@ def test_emailer(environ):
 
     mailer = Mailer(emitter='test@example.com', port=9999)
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     pipeline = mailer(handler)
     with SMTPDFix(mailer.config.host, mailer.config.port) as smtpd:
         pipeline(request)
     assert len(smtpd.messages) == 1
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     pipeline = mailer(fail_handler)
     with SMTPDFix(mailer.config.host, mailer.config.port) as smtpd:
         pipeline(request)
@@ -52,13 +52,13 @@ def test_emailer_with_transaction(environ):
     mailer = Mailer(emitter='test@example.com', port=9999)
     transaction = Transaction()
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     pipeline = transaction(mailer(handler))
     with SMTPDFix(mailer.config.host, mailer.config.port) as smtpd:
         pipeline(request)
     assert len(smtpd.messages) == 1
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     pipeline = transaction(mailer(aborting_handler))
     with SMTPDFix(mailer.config.host, mailer.config.port) as smtpd:
         pipeline(request)

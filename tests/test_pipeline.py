@@ -60,7 +60,7 @@ def test_pipeline(environ):
         (1, capitalize)
     ]
 
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     response = pipeline.wrap(handler)(request)
     assert response.body == 'THIS IS MY VIEW my suffix'
 

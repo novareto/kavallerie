@@ -2,7 +2,7 @@ from kavallerie.request import Request
 
 
 def test_request(environ):
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     assert request.utilities == {}
     assert request.path == '/'
     assert request.method == 'GET'
@@ -18,7 +18,7 @@ def test_request(environ):
 
 def test_request_uri(environ):
     environ = {**environ, 'QUERY_STRING': 'foo=bar'}
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     assert request.uri(include_query=False) == "http://test_domain.com/"
     assert request.uri(include_query=True) == (
         "http://test_domain.com/?foo%3Dbar"
@@ -26,6 +26,6 @@ def test_request_uri(environ):
 
     environ = {**environ}
     del environ['QUERY_STRING']
-    request = Request('/', app=None, environ=environ)
+    request = Request(None, environ=environ)
     assert request.uri(include_query=False) == "http://test_domain.com/"
     assert request.uri(include_query=True) == "http://test_domain.com/"
