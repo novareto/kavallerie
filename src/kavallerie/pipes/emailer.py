@@ -145,7 +145,7 @@ class Mailer(MiddlewareFactory):
                  globalconf: t.Optional[t.Mapping] = None):
 
         def emailer_middleware(request):
-            courrier = request.utilities['courrier'] = Courrier(self.config)
+            courrier = request.utilities['courrier'] = self.courrier(self.config)
             tm = request.utilities.get('transaction_manager')
             if tm is not None and not tm.isDoomed():
                 tm.get().join(MailDataManager(courrier, tm))
