@@ -19,8 +19,9 @@ class HTTPSession(MiddlewareFactory):
         TTL: int = 300
         cookie_name: str = 'sid'
         secure: bool = True
-        salt: t.Optional[str] = None
         save_new_empty: bool = False
+        salt: t.Optional[str] = None
+        domain: t.Optional[str] = None
 
     def __post_init__(self):
         self.manager = SignedCookieManager(
@@ -74,7 +75,8 @@ class HTTPSession(MiddlewareFactory):
             elif session.new:
                 return response
 
-            domain = request.environ['HTTP_HOST'].split(':', 1)[0]
+            domain = self.config.domain or \
+                request.environ['HTTP_HOST'].split(':', 1)[0]
             cookie = self.manager.cookie(
                 session.sid,
                 request.script_name or '/',
