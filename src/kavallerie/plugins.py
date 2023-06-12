@@ -3,11 +3,11 @@ import typing as t
 import importlib
 import logging
 import types
+from functools import cached_property
 from collections import namedtuple, defaultdict
 from importlib.metadata import entry_points
 from kavallerie.app import Application
 from kavallerie.registries import Blueprint
-from kavallerie.utils import unique
 
 
 Logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class Plugin:
             self.blueprints = namedtuple(
                 'Blueprints', blueprints.keys())(*blueprints.values())
 
-    @unique
+    @cached_property
     def __lineage__(self) -> t.Tuple:
 
         def unfiltered_lineage():

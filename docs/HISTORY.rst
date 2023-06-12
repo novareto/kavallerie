@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+0.5 (2023-06-12)
+----------------
+
+  * Removed `unique` decorator to use `functools.cached_property`
+  * Decoupled the ordering of the pipeline items into a reusable
+    baseclass called `PriorityChain`
+
+
 0.4 (2022-10-12)
 ----------------
 

@@ -5,11 +5,11 @@ import horseman.parsers
 import horseman.types
 import horseman.http
 import horseman.meta
+from functools import cached_property
 from horseman.parsers import Data
 from http_session.session import Session
 from roughrider.routing.meta import Route
 from roughrider.cors.policy import CORSPolicy
-from kavallerie.utils import unique
 from kavallerie.datastructures import TypeCastingDict
 from kavallerie import meta
 from kavallerie.meta import User  # backward compatibility
@@ -80,27 +80,27 @@ class Request(meta.Request, horseman.meta.Overhead):
             self._data = Data()
         return self._data
 
-    @unique
+    @cached_property
     def path(self):
         if path := self.environ.get('PATH_INFO'):
             return path.encode('latin-1').decode('utf-8')
         return '/'
 
-    @unique
+    @cached_property
     def query(self):
         return Query.from_environ(self.environ)
 
-    @unique
+    @cached_property
     def cookies(self):
         return horseman.http.Cookies.from_environ(self.environ)
 
-    @unique
+    @cached_property
     def content_type(self):
         if 'CONTENT_TYPE' in self.environ:
             return horseman.http.ContentType.from_http_header(
                 self.environ['CONTENT_TYPE'])
 
-    @unique
+    @cached_property
     def application_uri(self):
         scheme = self.environ.get('wsgi.url_scheme', 'http')
         http_host = self.environ.get('HTTP_HOST')

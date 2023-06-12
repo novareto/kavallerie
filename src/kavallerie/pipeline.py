@@ -4,20 +4,14 @@ import bisect
 from functools import reduce, wraps
 from gelidum import freeze
 from kavallerie.response import Response
+from kavallerie.components import PriorityChain
 
 
 Handler = t.Callable
 Middleware = t.Callable[[Handler, t.Optional[t.Mapping]], Handler]
 
 
-class Pipeline:
-
-    __slots__ = ('_chain',)
-
-    _chain: t.List[Middleware]
-
-    def __init__(self, *middlewares):
-        self._chain = list(enumerate(middlewares))
+class Pipeline(PriorityChain[Middleware]):
 
     def wrap(self, wrapped: Handler, conf: t.Optional[t.Mapping] = None):
         if not self._chain:
@@ -33,29 +27,6 @@ class Pipeline:
         def wrapper(wrapped: Handler):
             return self.wrap(wrapped, conf)
         return wrapper
-
-    def add(self, middleware: Middleware, order: int = 0):
-        insert = (order, middleware)
-        if not self._chain:
-            self._chain = [insert]
-        elif insert in self._chain:
-            raise KeyError(
-                'Middleware {middleware!r} already exists at #{order}.')
-        else:
-            bisect.insort(self._chain, insert)
-
-    def remove(self, middleware: Middleware, order: int):
-        insert = (order, middleware)
-        if insert not in self._chain:
-            raise KeyError(
-                'Middleware {middleware!r} doest not exist at #{order}.')
-        self._chain.remove((order, middleware))
-
-    def clear(self):
-        self._chain.clear()
-
-    def __iter__(self):
-        return iter(self._chain)
 
 
 class MiddlewareFactory(abc.ABC, Middleware):
