@@ -106,8 +106,23 @@ def test_security_bypass_filter(environ):
     assert response.status == 201
 
     request = Request(None, environ=environ)
+    request.path = '/login/'
+    response = security_bypass(['/login'])(handler, request)
+    assert response.status == 201
+
+    request = Request(None, environ=environ)
+    request.path = '/test/subpath'
+    response = security_bypass(['/test'])(handler, request)
+    assert response.status == 201
+
+    request = Request(None, environ=environ)
     request.path = '/test'
-    response = security_bypass('/login')(handler, request)
+    response = security_bypass(['/login'])(handler, request)
+    assert response is None
+
+    request = Request(None, environ=environ)
+    request.path = '/test'
+    response = security_bypass(['/test2'])(handler, request)
     assert response is None
 
 

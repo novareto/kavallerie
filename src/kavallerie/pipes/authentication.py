@@ -44,13 +44,13 @@ class Authentication(MiddlewareFactory):
 
 
 def security_bypass(urls: t.List[str]) -> Filter:
-    unprotected = frozenset(urls)
-
+    unprotected = frozenset(
+        PurePosixPath(bypass) for bypass in urls
+    )
     def _filter(caller, request):
-        path = PurePosixPath(request.path).parts
+        path = PurePosixPath(request.path)
         for bypass in unprotected:
-            decomposed = PurePosixPath(bypass).parts[:len(path)]
-            if path == decomposed:
+            if path.is_relative_to(bypass):
                 return caller(request)
 
     return _filter
