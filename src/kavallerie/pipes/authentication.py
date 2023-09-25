@@ -47,10 +47,10 @@ def security_bypass(urls: t.List[str]) -> Filter:
     unprotected = frozenset(urls)
 
     def _filter(caller, request):
-        path = PurePosixPath(request.path)
+        path = PurePosixPath(request.path).parts
         for bypass in unprotected:
-            bypass_path = PurePosixPath(bypass)
-            if bypass_path in (path, *path.parents):
+            decomposed = PurePosixPath(bypass).parts[:len(path)]
+            if path == decomposed:
                 return caller(request)
 
     return _filter
