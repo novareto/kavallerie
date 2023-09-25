@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+0.5.1 (2023-09-25)
+------------------
+
+  * Fixed `security_bypass` auth filter using `pathlib.PurePosixPath`
+
+
 0.5 (2023-06-12)
 ----------------
 

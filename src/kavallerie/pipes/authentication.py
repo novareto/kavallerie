@@ -1,4 +1,5 @@
 import typing as t
+from pathlib import PurePosixPath
 from kavallerie.response import Response
 from kavallerie.request import Request
 from kavallerie.auth import Source, Authenticator
@@ -46,8 +47,11 @@ def security_bypass(urls: t.List[str]) -> Filter:
     unprotected = frozenset(urls)
 
     def _filter(caller, request):
-        if request.path in unprotected:
-            return caller(request)
+        path = PurePosixPath(request.path)
+        for bypass in unprotected:
+            bypass_path = PurePosixPath(bypass)
+            if bypass_path in (path, *path.parents):
+                return caller(request)
 
     return _filter
 
