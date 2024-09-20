@@ -47,10 +47,9 @@ class Courrier:
 
         if files:
             for name, f in files.items():
-                name =
                 with open(f, "rb") as fd:
                     part = MIMEApplication(
-                        fil.read(),
+                        fd.read(),
                         Name=name
                     )
                 part['Content-Disposition'] = (
