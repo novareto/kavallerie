@@ -5,6 +5,7 @@ from collections import deque
 from email.utils import make_msgid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 from kavallerie.pipeline import Handler, MiddlewareFactory
 from transaction.interfaces import IDataManager
 from zope.interface import implementer
@@ -27,7 +28,7 @@ class Courrier:
         self.server = None
 
     @staticmethod
-    def format_email(origin, target, subject, text, html=None):
+    def format_email(origin, target, subject, text, html=None, files=None):
         msg = MIMEMultipart("alternative")
         msg["From"] = origin
         msg["To"] = target
@@ -43,6 +44,19 @@ class Courrier:
             part2 = MIMEText(html, "html")
             part2.set_charset("utf-8")
             msg.attach(part2)
+
+        if files:
+            for name, f in files.items():
+                name =
+                with open(f, "rb") as fd:
+                    part = MIMEApplication(
+                        fil.read(),
+                        Name=name
+                    )
+                part['Content-Disposition'] = (
+                    f'attachment; filename="{name}"'
+                )
+                msg.attach(part)
 
         return msg
 
@@ -67,7 +81,7 @@ class Courrier:
     def clear(self):
         self.queue.clear()
 
-    def send(self, recipient, subject, text, html=None) -> str:
+    def send(self, recipient, subject, text, html=None, files=None) -> str:
         mail = self.format_email(
             self.config.emitter, recipient, subject, text, html)
         self.queue.append(mail)
