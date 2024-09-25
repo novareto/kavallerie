@@ -146,9 +146,9 @@ class Plugins:
     @classmethod
     def from_entrypoints(cls, key='kavallerie.plugins'):
         def entrypoints_plugins():
-            eps = entry_points()
-            if (plugin_definitions := eps.select(group=key)) is not None:
-                for definition in plugin_definitions:
+            eps = entry_points(group=key)
+            if eps is not None:
+                for definition in eps:
                     loaded = definition.load()
                     Logger.debug(
                         f"Loading plugin {loaded.name}."
