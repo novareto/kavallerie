@@ -147,7 +147,7 @@ class Plugins:
     def from_entrypoints(cls, key='kavallerie.plugins'):
         def entrypoints_plugins():
             eps = entry_points()
-            if (plugin_definitions := eps.get(key)) is not None:
+            if (plugin_definitions := eps.select(group=key)) is not None:
                 for definition in plugin_definitions:
                     loaded = definition.load()
                     Logger.debug(

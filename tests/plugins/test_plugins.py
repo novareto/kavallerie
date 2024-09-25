@@ -21,3 +21,8 @@ def test_plugins_dependencies():
     assert app.__installed_plugins__ == {
         'sql', 'useless', 'transaction', 'myplugin'
     }
+
+
+def test_plugins_from_entrypoints():
+    plugins = Plugins.from_entrypoints()
+    assert plugins._store == {}
