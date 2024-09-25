@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+0.5.2 (2024-09-25)
+------------------
+
+ * py3.12 compatibility ensured with importlib-metadata update for the
+   plugins entrypoints.
+
+
 0.5.1 (2023-09-25)
 ------------------
 
