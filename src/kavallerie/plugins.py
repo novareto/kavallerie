@@ -5,7 +5,7 @@ import logging
 import types
 from functools import cached_property
 from collections import namedtuple, defaultdict
-from importlib.metadata import entry_points
+from importlib_metadata import entry_points
 from kavallerie.app import Application
 from kavallerie.registries import Blueprint
 
@@ -146,9 +146,9 @@ class Plugins:
     @classmethod
     def from_entrypoints(cls, key='kavallerie.plugins'):
         def entrypoints_plugins():
-            eps = entry_points()
-            if (plugin_definitions := eps.get(key)) is not None:
-                for definition in plugin_definitions:
+            eps = entry_points(group=key)
+            if eps is not None:
+                for definition in eps:
                     loaded = definition.load()
                     Logger.debug(
                         f"Loading plugin {loaded.name}."
