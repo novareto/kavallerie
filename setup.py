@@ -15,6 +15,7 @@ setup(
         'roughrider.routing',
         'transaction',
         'zope.interface',
+        'importlib-metadata >= 6.5'
     ],
     extras_require={
         'test': [
