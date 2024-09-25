@@ -5,7 +5,7 @@ import logging
 import types
 from functools import cached_property
 from collections import namedtuple, defaultdict
-from importlib.metadata import entry_points
+from importlib_metadata import entry_points
 from kavallerie.app import Application
 from kavallerie.registries import Blueprint
 
