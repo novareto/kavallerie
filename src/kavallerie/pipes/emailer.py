@@ -1,6 +1,8 @@
 import typing as t
 import smtplib
 import logging
+from pathlib import Path
+from io import IOBase
 from collections import deque
 from email.utils import make_msgid
 from email.mime.text import MIMEText
@@ -47,9 +49,21 @@ class Courrier:
 
         if files:
             for name, f in files.items():
-                with open(f, "rb") as fd:
+                if isinstance(f, str):
+                    with open(f, "rb") as fd:
+                        part = MIMEApplication(
+                            fd.read(),
+                            Name=name
+                        )
+                elif isinstance(f, Path):
+                    with f.open("rb") as fd:
+                        part = MIMEApplication(
+                            fd.read(),
+                            Name=name
+                        )
+                elif isinstance(f, IOBase):
                     part = MIMEApplication(
-                        fd.read(),
+                        f.read(),
                         Name=name
                     )
                 part['Content-Disposition'] = (
