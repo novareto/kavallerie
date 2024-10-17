@@ -115,7 +115,6 @@ class Courrier:
         try:
             while self.queue:
                 email = self.queue.popleft()
-                print(email['From'], email['To'])
                 server.sendmail(
                     email['From'], email['To'], email.as_string())
         finally:

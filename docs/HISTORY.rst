@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+0.6 (2024-10-17)
+----------------
+
+ * The emailer can now send email with attachments.
+
+
 0.5.2 (2024-09-25)
 ------------------
 
