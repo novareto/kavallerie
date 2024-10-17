@@ -96,7 +96,7 @@ class Courrier:
 
     def send(self, recipient, subject, text, html=None, files=None) -> str:
         mail = self.format_email(
-            self.config.emitter, recipient, subject, text, html)
+            self.config.emitter, recipient, subject, text, html, files)
         self.queue.append(mail)
         return mail['Message-ID']
 
@@ -115,6 +115,7 @@ class Courrier:
         try:
             while self.queue:
                 email = self.queue.popleft()
+                print(email['From'], email['To'])
                 server.sendmail(
                     email['From'], email['To'], email.as_string())
         finally:
