@@ -20,6 +20,8 @@ from postrider.mailer import SMTPConfiguration, Courrier
 
 class BaseCourrier(ABC):
 
+    emitter: str = "test@test.com"
+
     def __init__(self):
         self.queue = deque()
 
@@ -34,7 +36,7 @@ class BaseCourrier(ABC):
 
     def send(self, recipient, subject, text, html=None, files=None) -> str:
         mail = self.create_message(
-            self.config.emitter, recipient, subject, text, html, files)
+            self.emitter, recipient, subject, text, html, files)
         self.queue.append(mail)
         return mail['Message-ID']
 
@@ -55,9 +57,9 @@ class BaseCourrier(ABC):
 
 class MaildirCourrier(BaseCourrier):
 
-    def __init__(self, path: Path):
-        self.config = config
+    def __init__(self, path: Path, emitter: str):
         self.maibox = Maildir(path)
+        self.emitter = emitter
         super().__init__()
 
     def commit_message(self, message):
@@ -68,6 +70,7 @@ class SMTPCourrier(Courrier):
 
     def __init__(self, config: SMTPConfiguration):
         self.config = config
+        self.emitter = config.emitter
         self.server = None
         super().__init__()
 
