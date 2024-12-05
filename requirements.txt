@@ -1,1 +1,2 @@
+postrider@git+https://github.com/HorsemanWSGI/postrider.git
 -e .[test]
