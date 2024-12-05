@@ -11,6 +11,7 @@ setup(
         'importscan',
         'itsdangerous',
         'prejudice',
+        'postrider',
         'roughrider.cors',
         'roughrider.routing',
         'transaction',
