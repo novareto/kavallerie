@@ -3,6 +3,8 @@ from kavallerie.app import RoutingApplication
 from kavallerie.pipes.session import HTTPSession
 from kavallerie.request import Request
 from webtest import TestApp as WSGIApp
+from freezegun import freeze_time
+
 
 
 def test_session(environ, http_session_store):
@@ -13,11 +15,16 @@ def test_session(environ, http_session_store):
 
     request = Request(None, environ=environ)
     store = http_session_store()
-    middleware = HTTPSession(store=store, secret='my secret')(handler)
-    assert middleware(request)
+
+    with freeze_time('2024-11-26 12:00:01'):
+        middleware = HTTPSession(store=store, secret='my secret')(handler)
+        assert middleware(request)
+
     assert list(store) == ['00000000-0000-0000-0000-000000000000']
     assert store.get('00000000-0000-0000-0000-000000000000') == {
-        'test': 1
+        'test': 1,
+        'created': 1732622401,
+        'expires': 1732622701,
     }
 
 
@@ -47,21 +54,30 @@ def test_session_middleware(http_session_store):
         raise NotImplementedError()
 
     test = WSGIApp(app)
-    response = test.get('/add')
-    assert store.get('00000000-0000-0000-0000-000000000000') == {
-        'value': 1
-    }
+    with freeze_time('2024-11-26 12:00:01'):
+        response = test.get('/add')
+        assert store.get('00000000-0000-0000-0000-000000000000') == {
+            'value': 1,
+            'created': 1732622401,
+            'expires': 1732622701,
+        }
 
     cookie = response.headers.get('Set-Cookie')
-    response = test.get('/change', headers={'Cookie': cookie})
-    assert store.get('00000000-0000-0000-0000-000000000000') == {
-        'value': 42
-    }
+    with freeze_time('2024-11-26 12:00:01'):
+        response = test.get('/change', headers={'Cookie': cookie})
+        assert store.get('00000000-0000-0000-0000-000000000000') == {
+            'value': 42,
+            'created': 1732622401,
+            'expires': 1732622701,
+        }
 
     cookie = response.headers.get('Set-Cookie')
-    response = test.get(
-        '/fail', headers={'Cookie': cookie}, expect_errors=True)
-    assert response.status_code == 400
-    assert store.get('00000000-0000-0000-0000-000000000000') == {
-        'value': 42
-    }
+    with freeze_time('2024-11-26 12:00:01'):
+        response = test.get(
+            '/fail', headers={'Cookie': cookie}, expect_errors=True)
+        assert response.status_code == 400
+        assert store.get('00000000-0000-0000-0000-000000000000') == {
+            'value': 42,
+            'created': 1732622401,
+            'expires': 1732622701,
+        }

@@ -25,6 +25,7 @@ setup(
             'smtpdfix',
             'sqlalchemy.orm',
             'zope.sqlalchemy',
+            'freezegun',
         ]
     }
 )

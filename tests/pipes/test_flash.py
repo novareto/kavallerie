@@ -1,3 +1,4 @@
+import hamcrest
 from horseman.response import Response
 from kavallerie.app import RoutingApplication
 from kavallerie.pipes.flash import flash
@@ -29,20 +30,23 @@ def test_session_middleware(http_session_store):
 
     test = WSGIApp(app)
     response = test.get('/add')
-    assert store.get('00000000-0000-0000-0000-000000000000') == {
+    session = store.get('00000000-0000-0000-0000-000000000000')
+    hamcrest.assert_that(session, hamcrest.has_entries({
         'flashmessages': [{'body': 'This is a message', 'type': 'info'}]
-    }
+    }))
 
     cookie = response.headers.get('Set-Cookie')
     response = test.get('/consume', headers={'Cookie': cookie})
-    assert store.get('00000000-0000-0000-0000-000000000000') == {
+    session = store.get('00000000-0000-0000-0000-000000000000')
+    hamcrest.assert_that(session, hamcrest.has_entries({
         'flashmessages': []
-    }
+    }))
 
     response = test.get('/add', headers={'Cookie': cookie})
     cookie = response.headers.get('Set-Cookie')
     response = test.get('/consume_fail',
                         headers={'Cookie': cookie}, expect_errors=True)
-    assert store.get('00000000-0000-0000-0000-000000000000') == {
+    session = store.get('00000000-0000-0000-0000-000000000000')
+    hamcrest.assert_that(session, hamcrest.has_entries({
         'flashmessages': [{'body': 'This is a message', 'type': 'info'}]
-    }
+    }))
