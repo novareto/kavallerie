@@ -61,15 +61,13 @@ class HTTPSession(MiddlewareFactory):
                     sid, self.manager.store, new=new
                 )
                 creation = datetime.datetime.now()
-                session['created'] = int(
+                session.data['created'] = int(
                     datetime.datetime.timestamp(creation)
                 )
-                session['expires'] = int(datetime.datetime.timestamp(
+                session.data['expires'] = int(datetime.datetime.timestamp(
                     creation +
                     datetime.timedelta(seconds=self.config.TTL)
                 ))
-                import pdb
-                pdb.set_trace()
                 request.utilities['http_session'] = session
 
             response = handler(request)

@@ -1,15 +1,10 @@
 import typing as t
-import smtplib
 import logging
 from abc import ABC, abstractmethod
-from mailbox import Mailbox, Maildir
+from mailbox import Maildir
 from pathlib import Path
 from io import IOBase
 from collections import deque
-from email.utils import make_msgid
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
 from kavallerie.pipeline import Handler, MiddlewareFactory
 from transaction.interfaces import IDataManager
 from zope.interface import implementer
@@ -22,7 +17,8 @@ class BaseCourrier(ABC):
 
     emitter: str = "test@test.com"
 
-    def __init__(self):
+    def __init__(self, emitter: str):
+        self.emitter = emitter
         self.queue = deque()
 
     def clear(self):
@@ -34,9 +30,17 @@ class BaseCourrier(ABC):
     def disconnect(self):
         return
 
-    def send(self, recipient, subject, text, html=None, files=None) -> str:
-        mail = self.create_message(
-            self.emitter, recipient, subject, text, html, files)
+    def send(self,
+             recipients: str | list[str],
+             subject: str,
+             text: str,
+             html: str | None = None,
+             files: list[str | Path | IOBase] | None = None
+             ) -> str:
+        if not isinstance(recipients, list):
+            recipients = [recipients]
+        mail = create_message(
+            self.emitter, recipients, subject, text, html, files)
         self.queue.append(mail)
         return mail['Message-ID']
 
@@ -57,24 +61,27 @@ class BaseCourrier(ABC):
 
 class MaildirCourrier(BaseCourrier):
 
-    def __init__(self, path: Path, emitter: str):
+    def __init__(self, emitter: str, path: Path):
         self.maibox = Maildir(path)
-        self.emitter = emitter
-        super().__init__()
+        super().__init__(emitter)
 
     def commit_message(self, message):
         self.mailbox.add(message)
 
 
-class SMTPCourrier(Courrier):
+class SMTPCourrier(Courrier, BaseCourrier):
 
-    def __init__(self, config: SMTPConfiguration):
-        self.config = config
-        self.emitter = config.emitter
+    def __init__(self, emitter: str, config: SMTPConfiguration):
         self.server = None
-        super().__init__()
+        BaseCourrier.__init__(self, emitter)
+        Courrier.__init__(self, config)
+
+    def connect(self):
+        if self.server is None:
+            self.server = super().connect()
 
     def commit_message(self, message):
+        self.connect()
         self.server.sendmail(
             message['From'],
             message['To'],
@@ -128,9 +135,9 @@ class MailDataManager:
     tpc_abort = abort
 
 
-def mailer(courrier: BaseCourrier):
+def Mailer(courrier: BaseCourrier):
 
-    def courrier(
+    def courrier_pipe(
             handler: Handler,
             globalconf: t.Optional[t.Mapping] = None):
 
@@ -148,4 +155,4 @@ def mailer(courrier: BaseCourrier):
             return response
 
         return emailer_middleware
-    return courrier
+    return courrier_pipe
