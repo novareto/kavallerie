@@ -1,6 +1,6 @@
 import itsdangerous
 import typing as t
-from datetime import datetime, timedelta
+import datetime
 from http_session.meta import Store
 from http_session.cookie import SameSite, HashAlgorithm, SignedCookieManager
 from kavallerie.pipeline import Handler, MiddlewareFactory
@@ -60,12 +60,14 @@ class HTTPSession(MiddlewareFactory):
                 session = self.manager.session_factory(
                     sid, self.manager.store, new=new
                 )
-                creation = datetime.now()
-                session['created'] = datetime.timestamp(creation)
-                session['expires'] = datetime.timestamp(
-                    creation +
-                    timedelta(seconds=self.manager.store.TTL)
+                creation = datetime.datetime.now()
+                session.data['created'] = int(
+                    datetime.datetime.timestamp(creation)
                 )
+                session.data['expires'] = int(datetime.datetime.timestamp(
+                    creation +
+                    datetime.timedelta(seconds=self.config.TTL)
+                ))
                 request.utilities['http_session'] = session
 
             response = handler(request)

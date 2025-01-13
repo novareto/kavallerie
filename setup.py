@@ -11,6 +11,7 @@ setup(
         'importscan',
         'itsdangerous',
         'prejudice',
+        'postrider',
         'roughrider.cors',
         'roughrider.routing',
         'transaction',
@@ -25,6 +26,7 @@ setup(
             'smtpdfix',
             'sqlalchemy.orm',
             'zope.sqlalchemy',
+            'freezegun',
         ]
     }
 )

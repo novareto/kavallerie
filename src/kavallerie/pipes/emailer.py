@@ -1,130 +1,103 @@
 import typing as t
-import smtplib
 import logging
+from abc import ABC, abstractmethod
+from mailbox import Maildir
 from pathlib import Path
 from io import IOBase
 from collections import deque
-from email.utils import make_msgid
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
 from kavallerie.pipeline import Handler, MiddlewareFactory
 from transaction.interfaces import IDataManager
 from zope.interface import implementer
 
-
-class SMTPConfiguration(t.NamedTuple):
-    emitter: str
-    port: int = 25
-    host: str = "localhost"
-    user: str = None
-    password: str = None
-    debug: bool = False
+from postrider import create_message
+from postrider.mailer import SMTPConfiguration, Courrier
 
 
-class Courrier:
+class BaseCourrier(ABC):
 
-    def __init__(self, config: SMTPConfiguration):
-        self.config = config
+    emitter: str = "test@test.com"
+
+    def __init__(self, emitter: str):
+        self.emitter = emitter
         self.queue = deque()
+
+    def clear(self):
+        self.queue.clear()
+
+    def connect(self):
+        return
+
+    def disconnect(self):
+        return
+
+    def send(self,
+             recipients: str | list[str],
+             subject: str,
+             text: str,
+             html: str | None = None,
+             files: list[str | Path | IOBase] | None = None
+             ) -> str:
+        if not isinstance(recipients, list):
+            recipients = [recipients]
+        mail = create_message(
+            self.emitter, recipients, subject, text, html, files)
+        self.queue.append(mail)
+        return mail['Message-ID']
+
+    @abstractmethod
+    def commit_message(self, message):
+        pass
+
+    def exhaust(self):
+        if not self.queue:
+            return
+        try:
+            while self.queue:
+                email = self.queue.popleft()
+                self.commit_message(email)
+        finally:
+            self.disconnect()
+
+
+class MaildirCourrier(BaseCourrier):
+
+    def __init__(self, emitter: str, path: Path):
+        self.maibox = Maildir(path)
+        super().__init__(emitter)
+
+    def commit_message(self, message):
+        self.mailbox.add(message)
+
+
+class SMTPCourrier(Courrier, BaseCourrier):
+
+    def __init__(self, emitter: str, config: SMTPConfiguration):
         self.server = None
-
-    @staticmethod
-    def format_email(origin, target, subject, text, html=None, files=None):
-        msg = MIMEMultipart("alternative")
-        msg["From"] = origin
-        msg["To"] = target
-        msg["Subject"] = subject
-        msg['Message-ID'] = make_msgid()
-        msg.set_charset("utf-8")
-
-        part1 = MIMEText(text, "plain")
-        part1.set_charset("utf-8")
-        msg.attach(part1)
-
-        if html is not None:
-            part2 = MIMEText(html, "html")
-            part2.set_charset("utf-8")
-            msg.attach(part2)
-
-        if files:
-            for name, f in files.items():
-                if isinstance(f, str):
-                    with open(f, "rb") as fd:
-                        part = MIMEApplication(
-                            fd.read(),
-                            Name=name
-                        )
-                elif isinstance(f, Path):
-                    with f.open("rb") as fd:
-                        part = MIMEApplication(
-                            fd.read(),
-                            Name=name
-                        )
-                elif isinstance(f, IOBase):
-                    part = MIMEApplication(
-                        f.read(),
-                        Name=name
-                    )
-                part['Content-Disposition'] = (
-                    f'attachment; filename="{name}"'
-                )
-                msg.attach(part)
-
-        return msg
+        BaseCourrier.__init__(self, emitter)
+        Courrier.__init__(self, config)
 
     def connect(self):
         if self.server is None:
-            server = smtplib.SMTP(self.config.host, str(self.config.port))
-            server.set_debuglevel(self.config.debug)
-            code, response = server.ehlo()
-            if code < 200 or code >= 300:
-                raise RuntimeError(
-                    'Error sending EHLO to the SMTP server '
-                    f'(code={code}, response={response})'
-                )
-            self.server = server
-        return self.server
+            self.server = super().connect()
+
+    def commit_message(self, message):
+        self.connect()
+        self.server.sendmail(
+            message['From'],
+            message['To'],
+            message.as_string()
+        )
 
     def disconnect(self):
         if self.server is not None:
             self.server.close()
             self.server = None
 
-    def clear(self):
-        self.queue.clear()
-
-    def send(self, recipient, subject, text, html=None, files=None) -> str:
-        mail = self.format_email(
-            self.config.emitter, recipient, subject, text, html, files)
-        self.queue.append(mail)
-        return mail['Message-ID']
-
-    def exhaust(self):
-        if not self.queue:
-            return
-
-        server = self.connect()
-
-        # If we can encrypt this session, do it
-        if server.has_extn("STARTTLS"):
-            server.starttls()
-            server.ehlo()  # re-identify ourselves over TLS connection
-        if self.config.user:
-            server.login(self.config.user, self.config.password)
-        try:
-            while self.queue:
-                email = self.queue.popleft()
-                server.sendmail(
-                    email['From'], email['To'], email.as_string())
-        finally:
-            self.disconnect()
-
 
 @implementer(IDataManager)
 class MailDataManager:
 
-    def __init__(self, courrier: Courrier, manager):
+    def __init__(self, courrier: BaseCourrier, manager):
         self.courrier = courrier
         self.transaction_manager = manager
 
@@ -162,17 +135,14 @@ class MailDataManager:
     tpc_abort = abort
 
 
-class Mailer(MiddlewareFactory):
+def Mailer(courrier: BaseCourrier):
 
-    courrier: t.ClassVar[t.Type[Courrier]] = Courrier
-    Configuration: t.ClassVar[SMTPConfiguration] = SMTPConfiguration
-
-    def __call__(self,
-                 handler: Handler,
-                 globalconf: t.Optional[t.Mapping] = None):
+    def courrier_pipe(
+            handler: Handler,
+            globalconf: t.Optional[t.Mapping] = None):
 
         def emailer_middleware(request):
-            courrier = request.utilities['courrier'] = self.courrier(self.config)
+            request.utilities['courrier'] = courrier
             tm = request.utilities.get('transaction_manager')
             if tm is not None and not tm.isDoomed():
                 tm.get().join(MailDataManager(courrier, tm))
@@ -185,3 +155,4 @@ class Mailer(MiddlewareFactory):
             return response
 
         return emailer_middleware
+    return courrier_pipe
