@@ -32,13 +32,16 @@ class Query(TypeCastingDict):
 
 class Request(meta.Request, horseman.meta.Overhead):
 
-    __slots__ = meta.Request.__slots__ + (
+    __slots__ = (
         '_data',
+        '_user',
+        'app',
         'cors_policy',
         'environ',
         'method',
         'route',
         'script_name',
+        'utilities',
     )
 
     app: horseman.meta.Node
@@ -53,14 +56,18 @@ class Request(meta.Request, horseman.meta.Overhead):
     route: t.Optional[Route]
     _data: t.Optional[horseman.parsers.Data]
 
-    def __init__(self, app,
+    def __init__(self,
+                 app: meta.Application,
                  environ: horseman.types.Environ,
-                 cors_policy: t.Optional[CORSPolicy] = None,
-                 route: t.Optional[Route] = None,
-                 **kwargs
+                 cors_policy: CORSPolicy | None = None,
+                 route: Route | None = None,
+                 utilities: t.Mapping[str, t.Any] | None = None,
                  ):
-        meta.Request.__init__(self, app, **kwargs)
         self._data = ...
+        self._user = None
+
+        self.app = app
+        self.utilities = utilities is not None and utilities or {}
         self.environ = environ
         self.method = environ.get('REQUEST_METHOD', 'GET').upper()
         self.route = route
@@ -68,6 +75,14 @@ class Request(meta.Request, horseman.meta.Overhead):
         self.script_name = urllib.parse.quote(
             environ.get('SCRIPT_NAME', '')
         )
+
+    @property
+    def user(self):
+        return self._user
+
+    @user.setter
+    def user(self, user: User):
+        self._user = user
 
     def extract(self) -> horseman.parsers.Data:
         if self._data is not ...:
