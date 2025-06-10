@@ -12,15 +12,11 @@ Filter = t.Callable[[Handler, Request], t.Optional[Response]]
 class Authentication(MiddlewareFactory):
 
     class Configuration(t.NamedTuple):
-        sources: t.Iterable[Source]
-        user_key: str = 'user'
+        authenticator: Authenticator
         filters: t.Optional[t.Iterable[Filter]] = None
 
     def __post_init__(self):
-        self.authenticator = Authenticator(
-            self.config.user_key,
-            self.config.sources
-        )
+        self.authenticator = self.config.authenticator
 
     def __call__(self,
                  handler: Handler,

@@ -7,7 +7,7 @@ def test_source(environ):
 
     request = Request(None, environ=environ)
     authenticator = Authenticator(
-        'user', [
+        sources=[
             DictSource({'admin': 'admin'}),
         ]
     )
@@ -29,7 +29,7 @@ def test_several_sources(environ):
 
     request = Request(None, environ=environ)
     authenticator = Authenticator(
-        'user', [
+        sources=[
             DictSource({'admin': 'admin'}),
             DictSource({'test': 'test'}),
             DictSource({'john': 'doe'}),

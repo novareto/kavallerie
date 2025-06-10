@@ -1,7 +1,7 @@
 import abc
 import typing as t
 from datetime import datetime
-from kavallerie.request import User, Request
+from kavallerie.meta import User, Request
 
 
 class Source(abc.ABC):
@@ -16,12 +16,19 @@ class Source(abc.ABC):
         pass
 
 
+class AuthenticationWrapper:
+
+    def __init__(self, user: User, request: Request):
+        self.user = user
+        self.request = request
+
+
 class Authenticator:
 
     user_key: str
     sources: t.Iterable[Source]
 
-    def __init__(self, user_key: str, sources: t.Iterable[Source]):
+    def __init__(self, sources: t.Iterable[Source], user_key: str = "user"):
         self.sources = sources
         self.user_key = user_key
 

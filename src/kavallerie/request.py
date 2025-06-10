@@ -12,7 +12,6 @@ from roughrider.routing.meta import Route
 from roughrider.cors.policy import CORSPolicy
 from kavallerie.datastructures import TypeCastingDict
 from kavallerie import meta
-from kavallerie.meta import User  # backward compatibility
 
 
 class Query(TypeCastingDict):
@@ -81,7 +80,7 @@ class Request(meta.Request, horseman.meta.Overhead):
         return self._user
 
     @user.setter
-    def user(self, user: User):
+    def user(self, user: meta.User):
         self._user = user
 
     def extract(self) -> horseman.parsers.Data:

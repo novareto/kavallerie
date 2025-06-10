@@ -1,8 +1,10 @@
 from freezegun import freeze_time
-from kavallerie.request import Request, User
+from kavallerie.meta import User
+from kavallerie.request import Request
 from kavallerie.response import Response
 from kavallerie.testing import DictSource
 from kavallerie.pipes.session import HTTPSession
+from kavallerie.auth import Authenticator
 from kavallerie.pipes.authentication import (
     Authentication, security_bypass, secured, TwoFA)
 
@@ -15,7 +17,10 @@ def test_auth(environ, http_session_store):
     with freeze_time('2024-11-26 12:00:01'):
         request = Request(None, environ=environ)
         authentication = Authentication(
-            sources=[DictSource({'admin': 'admin'})])
+            authenticator=Authenticator(
+                sources=[DictSource({'admin': 'admin'})]
+            )
+        )
         store = http_session_store()
         session = HTTPSession(store=store, secret='my secret')
 
@@ -58,11 +63,14 @@ def test_filter(environ):
             return Response(403)
 
     authentication = Authentication(
+        authenticator=Authenticator(
+            sources=[
+                DictSource({'admin': 'admin'}),
+                DictSource({'test': 'test'}),
+            ]
+        ),
         filters=[admin_filter],
-        sources=[
-            DictSource({'admin': 'admin'}),
-            DictSource({'test': 'test'}),
-        ])
+    )
 
     request = Request(None, environ=environ)
     request.user = authentication.authenticator.from_credentials(request, {
