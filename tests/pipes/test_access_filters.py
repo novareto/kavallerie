@@ -1,0 +1,107 @@
+from kavallerie.request import Request
+from kavallerie.response import Response
+from kavallerie.access import security_bypass, secured, TwoFA
+from kavallerie.pipes.access import AccessFiltering
+from kavallerie.meta import User
+
+
+class UserClass(User):
+
+    def __init__(self, uid: str):
+        self.id = uid
+
+
+def test_filter(environ):
+
+    def handler(request):
+        return Response(201)
+
+    def admin_filter(caller, request):
+        if request.user.id != 'admin':
+            return Response(403)
+
+    middleware = AccessFiltering(admin_filter)
+    request = Request(None, environ=environ)
+    request.user = UserClass('admin')
+    response = middleware(handler)(request)
+    assert response.status == 201
+
+    request.user = UserClass('unknown')
+    response = middleware(handler)(request)
+    assert response.status == 403
+
+
+def test_secured_filter(environ):
+
+    def handler(request):
+        return Response(201)
+
+    request = Request(None, environ=environ)
+    response = secured('/login')(handler, request)
+    assert response.status == 303
+    assert response.headers['Location'] == '/login'
+
+    response = secured('/login')(handler, request)
+    assert response.status == 303
+    assert response.headers['Location'] == '/login'
+
+    request.user = UserClass("test")
+    response = secured('/login')(handler, request)
+    assert response is None
+
+
+def test_security_bypass_filter(environ):
+
+    def handler(request):
+        return Response(201)
+
+    request = Request(None, environ=environ)
+    request.path = '/login'
+    response = security_bypass(['/login'])(handler, request)
+    assert response.status == 201
+
+    request = Request(None, environ=environ)
+    request.path = '/login/'
+    response = security_bypass(['/login'])(handler, request)
+    assert response.status == 201
+
+    request = Request(None, environ=environ)
+    request.path = '/test/subpath'
+    response = security_bypass(['/test'])(handler, request)
+    assert response.status == 201
+
+    request = Request(None, environ=environ)
+    request.path = '/test'
+    response = security_bypass(['/login'])(handler, request)
+    assert response is None
+
+    request = Request(None, environ=environ)
+    request.path = '/test'
+    response = security_bypass(['/test2'])(handler, request)
+    assert response is None
+
+
+def test_twoFA_filter(environ):
+
+    def twofa_checker(request):
+        return getattr(request, 'twoFA', False)
+
+    def handler(request):
+        return Response(201)
+
+    request = Request(None, environ=environ)
+    request.path = '/index'
+    response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
+    assert response.status == 303
+    assert response.headers['Location'] == '/sms_qr_code'
+
+    request = Request(None, environ=environ)
+    request.path = '/sms_qr_code'
+    response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
+    assert response.status == 201
+
+    request = Request(None, environ=environ)
+    request.twoFA = True
+    request.path = '/index'
+    response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
+    assert response is None

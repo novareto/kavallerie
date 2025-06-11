@@ -23,8 +23,7 @@ def test_no_resolve(environ):
     authenticator = BaseAuthenticator()
 
     user = authenticator.identify(request)
-    assert user is forceduser
-    assert request.user is forceduser
+    assert user is None
 
 
 def test_preflight(environ):
@@ -37,12 +36,10 @@ def test_preflight(environ):
 
     user = authenticator.identify(request)
     assert user is testuser
-    assert request.user is testuser
 
     request = Request(None, environ=environ, user=forceduser)
     user = authenticator.identify(request)
-    assert user is forceduser
-    assert request.user is forceduser
+    assert user is testuser
 
 
 def test_no_source(environ):

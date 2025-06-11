@@ -43,18 +43,12 @@ class BaseAuthenticator:
                 return user
 
     def identify(self, request) -> User | None:
-        if request.user is not None:
-            logger.info(f'Request contains a user: {request.user}. '
-                        'Skipping authentication.')
-            return request.user
-
         if self.preflights:
             logger.info(f'Authentication preflight found.')
             for resolver in self.preflights:
                 if (user := resolver(request)) is not None:
                     logger.info(
                         f'Preflight user found by {resolver}: {user}.')
-                    request.user = user
                     return user
             logger.info(f'Authentication preflight unsuccessful.')
 
@@ -65,7 +59,6 @@ class BaseAuthenticator:
                 if user is not None:
                     logger.info(
                         f'Authentication by {source} successful: {user}')
-                    request.user = user
                     return user
 
     def get_stored_id(self, request):

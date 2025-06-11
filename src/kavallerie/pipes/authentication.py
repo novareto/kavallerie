@@ -1,71 +1,37 @@
 import typing as t
-from pathlib import PurePosixPath
-from kavallerie.response import Response
+import logging
 from kavallerie.request import Request
-from kavallerie.auth import Source, BaseAuthenticator
-from kavallerie.pipeline import Handler, MiddlewareFactory
+from kavallerie.auth import BaseAuthenticator
+from kavallerie.pipeline import Handler
 
 
-Filter = t.Callable[[Handler, Request], t.Optional[Response]]
+logger = logging.getLogger(__name__)
 
 
-class Authentication(MiddlewareFactory):
+class Authentication:
 
-    class Configuration(t.NamedTuple):
-        authenticator: BaseAuthenticator
-        filters: t.Iterable[Filter] | None = None
-
-    def __post_init__(self):
-        self.authenticator = self.config.authenticator
+    def __init__(self, authenticator: BaseAuthenticator):
+        self.authenticator = authenticator
 
     def __call__(self,
                  handler: Handler,
-                 globalconf: t.Optional[t.Mapping] = None):
+                 globalconf: t.Mapping | None = None):
 
         def authentication_middleware(request):
             request.utilities['authentication'] = self.authenticator
-            _ = self.authenticator.identify(request)
-            if self.config.filters:
-                for filter in self.config.filters:
-                    if (resp := filter(handler, request)) is not None:
-                        del request.utilities['authentication']
-                        return resp
+
+            if request.user is not None:
+                logger.info(f'Request contains a user: {request.user}. '
+                            'Skipping authentication.')
+
+            else:
+                request.user = self.authenticator.identify(request)
+
+            if request.user is None:
+                logger.info(f'No user found by authentication.')
 
             response = handler(request)
             del request.utilities['authentication']
             return response
 
         return authentication_middleware
-
-
-def security_bypass(urls: t.List[str]) -> Filter:
-    unprotected = frozenset(
-        PurePosixPath(bypass) for bypass in urls
-    )
-    def _filter(caller, request):
-        path = PurePosixPath(request.path)
-        for bypass in unprotected:
-            if path.is_relative_to(bypass):
-                return caller(request)
-
-    return _filter
-
-
-def secured(path: str) -> Filter:
-
-    def _filter(caller, request):
-        if request.user is None:
-            return Response.redirect(request.script_name + path)
-
-    return _filter
-
-
-def TwoFA(path: str, checker: t.Callable[[Request], bool]) -> Filter:
-
-    def _filter(caller, request):
-        if request.path == path:
-            return caller(request)
-        if not checker(request):
-            return Response.redirect(request.script_name + path)
-
-    return _filter
