@@ -4,7 +4,7 @@ from kavallerie.request import Request
 from kavallerie.response import Response
 from kavallerie.testing import DictSource
 from kavallerie.pipes.session import HTTPSession
-from kavallerie.auth import Authenticator
+from kavallerie.auth import HTTPSessionAuthenticator
 from kavallerie.pipes.authentication import (
     Authentication, security_bypass, secured, TwoFA)
 
@@ -17,7 +17,7 @@ def test_auth(environ, http_session_store):
     with freeze_time('2024-11-26 12:00:01'):
         request = Request(None, environ=environ)
         authentication = Authentication(
-            authenticator=Authenticator(
+            authenticator=HTTPSessionAuthenticator(
                 sources=[DictSource({'admin': 'admin'})]
             )
         )
@@ -63,7 +63,7 @@ def test_filter(environ):
             return Response(403)
 
     authentication = Authentication(
-        authenticator=Authenticator(
+        authenticator=HTTPSessionAuthenticator(
             sources=[
                 DictSource({'admin': 'admin'}),
                 DictSource({'test': 'test'}),

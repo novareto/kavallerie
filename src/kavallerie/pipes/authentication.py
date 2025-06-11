@@ -2,7 +2,7 @@ import typing as t
 from pathlib import PurePosixPath
 from kavallerie.response import Response
 from kavallerie.request import Request
-from kavallerie.auth import Source, Authenticator
+from kavallerie.auth import Source, BaseAuthenticator
 from kavallerie.pipeline import Handler, MiddlewareFactory
 
 
@@ -12,8 +12,8 @@ Filter = t.Callable[[Handler, Request], t.Optional[Response]]
 class Authentication(MiddlewareFactory):
 
     class Configuration(t.NamedTuple):
-        authenticator: Authenticator
-        filters: t.Optional[t.Iterable[Filter]] = None
+        authenticator: BaseAuthenticator
+        filters: t.Iterable[Filter] | None = None
 
     def __post_init__(self):
         self.authenticator = self.config.authenticator
@@ -23,7 +23,6 @@ class Authentication(MiddlewareFactory):
                  globalconf: t.Optional[t.Mapping] = None):
 
         def authentication_middleware(request):
-            assert isinstance(request, Request)
             request.utilities['authentication'] = self.authenticator
             _ = self.authenticator.identify(request)
             if self.config.filters:

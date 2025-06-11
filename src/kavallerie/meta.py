@@ -1,4 +1,5 @@
 import abc
+import uuid
 import typing as t
 from dataclasses import dataclass, field
 from kavallerie.pipeline import Pipeline
@@ -6,7 +7,7 @@ from kavallerie.events import Subscribers
 
 
 class User(abc.ABC):
-    id: t.Union[str, int]
+    id: str | int | uuid.UUID
 
 
 class Request:
