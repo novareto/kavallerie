@@ -22,11 +22,13 @@ def security_bypass(urls: t.Iterable[str]) -> Filter:
     return _filter
 
 
-def secured(path: str) -> Filter:
+def secured(path: str | None = None) -> Filter:
 
     def _filter(caller, request):
         if request.user is None:
-            return Response.redirect(request.script_name + path)
+            if path is not None:
+                return Response.redirect(request.script_name + path)
+            return Response(403)
 
     return _filter
 

@@ -31,7 +31,7 @@ def test_filter(environ):
     assert response.status == 403
 
 
-def test_secured_filter(environ):
+def test_secured_filter_no_user(environ):
 
     def handler(request):
         return Response(201)
@@ -45,7 +45,20 @@ def test_secured_filter(environ):
     assert response.status == 303
     assert response.headers['Location'] == '/login'
 
-    request.user = UserClass("test")
+    response = secured()(handler, request)
+    assert response.status == 403
+
+
+def test_secured_filter_user(environ):
+
+    def handler(request):
+        return Response(201)
+
+    request = Request(None, environ=environ, user=UserClass("test"))
+
+    response = secured()(handler, request)
+    assert response is None
+
     response = secured('/login')(handler, request)
     assert response is None
 
