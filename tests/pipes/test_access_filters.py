@@ -21,12 +21,11 @@ def test_filter(environ):
             return Response(403)
 
     middleware = AccessFiltering(admin_filter)
-    request = Request(None, environ=environ)
-    request.user = UserClass('admin')
+    request = Request(None, environ=environ, user=UserClass('admin'))
     response = middleware(handler)(request)
     assert response.status == 201
 
-    request.user = UserClass('unknown')
+    request = Request(None, environ=environ, user=UserClass('anonymous'))
     response = middleware(handler)(request)
     assert response.status == 403
 
