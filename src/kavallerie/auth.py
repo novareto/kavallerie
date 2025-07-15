@@ -8,6 +8,12 @@ from kavallerie.meta import User, Request
 logger = logging.getLogger(__name__)
 
 
+
+class AuthenticationInfo(t.TypedDict):
+    source_id: str
+    user_id: str
+
+
 class Source(abc.ABC):
 
     @abc.abstractmethod
@@ -25,22 +31,23 @@ Preflight = t.Callable[[Request], User | None]
 
 class BaseAuthenticator:
 
-    sources: list[Source]
+    sources: dict[str, Source]
     preflights: list[Preflight]
 
     def __init__(self,
-                 sources: t.Iterable[Source] | None = None,
+                 sources: t.Mapping[str, Source] | None = None,
                  preflights: t.Iterable[Preflight] | None = None
                  ):
-        self.sources = sources is not None and list(sources) or []
+        self.sources = sources is not None and sources or {}
         self.preflights = preflights is not None and list(preflights) or []
 
     def from_credentials(self,
-                         request, credentials: dict) -> User | None:
-        for source in self.sources:
+                         request,
+                         credentials: dict) -> tuple[str, User] | None:
+        for source_id, source in self.sources.items():
             user = source.find(credentials, request)
             if user is not None:
-                return user
+                return source_id, user
 
     def identify(self, request) -> User | None:
         if self.preflights:
@@ -53,21 +60,21 @@ class BaseAuthenticator:
             logger.info(f'Authentication preflight unsuccessful.')
 
         logger.info(f'Authentication initiated.')
-        if (userid := self.get_stored_id(request)) is not None:
-            for source in self.sources:
-                user = source.fetch(userid, request)
-                if user is not None:
-                    logger.info(
-                        f'Authentication by {source} successful: {user}')
-                    return user
+        if (info := self.get_stored_info(request)) is not None:
+            source = self.sources[info['source_id']]
+            user = source.fetch(info['user_id'], request)
+            if user is not None:
+                logger.info(
+                    f"Authentication by {info['source_id']} successful: {user}")
+                return user
 
-    def get_stored_id(self, request):
+    def get_stored_info(self, request) -> AuthenticationInfo:
         pass
 
     def forget(self, request) -> None:
         pass
 
-    def remember(self, request, user: User) -> None:
+    def remember(self, request, source_id: str, user: User) -> None:
         pass
 
 
@@ -79,7 +86,7 @@ class HTTPSessionAuthenticator(BaseAuthenticator):
         self.user_key = user_key
         super().__init__(**kwargs)
 
-    def get_stored_id(self, request):
+    def get_stored_info(self, request) -> AuthenticationInfo:
         if (session := request.utilities.get('http_session')) is not None:
             return session.get(self.user_key, None)
 
@@ -88,7 +95,10 @@ class HTTPSessionAuthenticator(BaseAuthenticator):
             session.clear()
         request.user = None
 
-    def remember(self, request, user: User) -> None:
+    def remember(self, request, source_id: str, user: User) -> None:
         if (session := request.utilities.get('http_session')) is not None:
-            session[self.user_key] = user.id
+            session[self.user_key] = AuthenticationInfo(
+                user_id=user.id,
+                source_id=source_id
+            )
         request.user = user
