@@ -6,13 +6,11 @@ import horseman.types
 import horseman.http
 import horseman.meta
 from functools import cached_property
-from horseman.parsers import Data
 from http_session.session import Session
 from roughrider.routing.meta import Route
 from roughrider.cors.policy import CORSPolicy
 from kavallerie.datastructures import TypeCastingDict
 from kavallerie import meta
-from kavallerie.meta import User  # backward compatibility
 
 
 class Query(TypeCastingDict):
@@ -32,35 +30,50 @@ class Query(TypeCastingDict):
 
 class Request(meta.Request, horseman.meta.Overhead):
 
-    __slots__ = meta.Request.__slots__ + (
+    __slots__ = (
         '_data',
+        'app',
         'cors_policy',
         'environ',
         'method',
         'route',
         'script_name',
+        'user',
+        'utilities',
     )
 
+    # arguments
     app: horseman.meta.Node
-    content_type: t.Optional[horseman.http.ContentType]
-    cookies: horseman.http.Cookies
     environ: horseman.types.Environ
-    method: horseman.types.HTTPMethod
+    user: meta.User | None
+    cors_policy: CORSPolicy | None
+    route: Route | None
+
+    # computed from environ
     path: str
     query: Query
     script_name: str
-    cors_policy: t.Optional[CORSPolicy]
-    route: t.Optional[Route]
-    _data: t.Optional[horseman.parsers.Data]
+    method: horseman.types.HTTPMethod
+    cookies: horseman.http.Cookies
+    content_type: horseman.http.ContentType | None
+    application_uri: str
 
-    def __init__(self, app,
+    # stored property
+    _data: horseman.parsers.Data | None
+
+
+    def __init__(self,
+                 app: meta.Application,
                  environ: horseman.types.Environ,
-                 cors_policy: t.Optional[CORSPolicy] = None,
-                 route: t.Optional[Route] = None,
-                 **kwargs
+                 cors_policy: CORSPolicy | None = None,
+                 route: Route | None = None,
+                 user: meta.User | None = None,
+                 utilities: t.Mapping[str, t.Any] | None = None,
                  ):
-        meta.Request.__init__(self, app, **kwargs)
-        self._data = ...
+        self._data = None
+        self.user = user
+        self.app = app
+        self.utilities = utilities is not None and utilities or {}
         self.environ = environ
         self.method = environ.get('REQUEST_METHOD', 'GET').upper()
         self.route = route
@@ -70,14 +83,12 @@ class Request(meta.Request, horseman.meta.Overhead):
         )
 
     def extract(self) -> horseman.parsers.Data:
-        if self._data is not ...:
-            return self._data
-
-        if self.content_type:
-            self._data = horseman.parsers.parser(
-                self.environ['wsgi.input'], self.content_type)
-        else:
-            self._data = Data()
+        if self._data is None:
+            if self.content_type:
+                self._data = horseman.parsers.parser(
+                    self.environ['wsgi.input'], self.content_type)
+            else:
+                self._data = horseman.parsers.Data()
         return self._data
 
     @cached_property
@@ -95,13 +106,13 @@ class Request(meta.Request, horseman.meta.Overhead):
         return horseman.http.Cookies.from_environ(self.environ)
 
     @cached_property
-    def content_type(self):
+    def content_type(self) -> horseman.http.ContentType | None:
         if 'CONTENT_TYPE' in self.environ:
             return horseman.http.ContentType.from_http_header(
                 self.environ['CONTENT_TYPE'])
 
     @cached_property
-    def application_uri(self):
+    def application_uri(self) -> str:
         scheme = self.environ.get('wsgi.url_scheme', 'http')
         http_host = self.environ.get('HTTP_HOST')
         if not http_host:
@@ -118,7 +129,7 @@ class Request(meta.Request, horseman.meta.Overhead):
             return f'{scheme}://{server}{self.script_name}'
         return f'{scheme}://{server}:{port}{self.script_name}'
 
-    def uri(self, include_query=True):
+    def uri(self, include_query=True) -> str:
         url = self.application_uri
         path_info = urllib.parse.quote(self.environ.get('PATH_INFO', ''))
         if include_query:

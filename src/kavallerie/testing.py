@@ -1,7 +1,7 @@
 import typing as t
 from kavallerie.auth import Source
-from kavallerie.request import Request, User
 from kavallerie.schema import JSONSchema
+from kavallerie.meta import Request, User
 
 
 class DictSource(Source):

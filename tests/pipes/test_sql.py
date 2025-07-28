@@ -1,8 +1,7 @@
 from webtest import TestApp as WSGIApp
 
 from sqlalchemy import create_engine, Column, Integer, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker
 from zope.sqlalchemy import register
 
 from kavallerie.response import Response
@@ -44,7 +43,7 @@ def test_middleware():
     @app.routes.register('/person/{id}')
     def fetch(request, id):
         session = request.app.config['session_factory']()
-        person = session.query(Person).get(id)
+        person = session.get(Person, id)
         return Response(200, body=person.name)
 
     test = WSGIApp(app)
@@ -54,6 +53,6 @@ def test_middleware():
     response = test.get('/person/1')
     assert response.body == b'MacBeth'
 
-    person = DBSession().query(Person).get(1)
+    person = DBSession().get(Person, 1)
     assert person is not None
     assert person.age == 35
