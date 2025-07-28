@@ -16,7 +16,8 @@ setup(
         'roughrider.routing',
         'transaction',
         'zope.interface',
-        'importlib-metadata >= 6.5'
+        'importlib-metadata >= 6.5',
+        'jsonschema-rs',
     ],
     extras_require={
         'test': [

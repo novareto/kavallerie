@@ -6,6 +6,16 @@ from kavallerie.request import User, Request
 
 class Source(abc.ABC):
 
+    @property
+    @abc.abstractmethod
+    def create_schema(self) -> dict:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def update_schema(self) -> dict:
+        pass
+
     @abc.abstractmethod
     def find(self,
              credentials: t.Dict, request: Request) -> t.Optional[User]:
@@ -13,6 +23,18 @@ class Source(abc.ABC):
 
     @abc.abstractmethod
     def fetch(self, uid: t.Any, request: Request) -> t.Optional[User]:
+        pass
+
+    @abc.abstractmethod
+    def delete(self,  uid: t.Any, request: Request) -> bool:
+        pass
+
+    @abc.abstractmethod
+    def update(self,  uid: t.Any, data: dict, request: Request) -> bool:
+        pass
+
+    @abc.abstractmethod
+    def add(self, data: dict, request: Request):
         pass
 
 

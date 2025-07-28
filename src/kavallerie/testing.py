@@ -1,9 +1,40 @@
 import typing as t
 from kavallerie.auth import Source
 from kavallerie.request import Request, User
+from kavallerie.schema import JSONSchema
 
 
 class DictSource(Source):
+
+    create_schema = JSONSchema({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "User",
+        "type": "object",
+        "properties": {
+            "username": {
+                "type": "string",
+                "description": "User name."
+            },
+            "password": {
+                "type": "string",
+                "description": "User password"
+            }
+        },
+        "required": ["username", "password"],
+    })
+
+    update_schema = JSONSchema({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "User update",
+        "type": "object",
+        "properties": {
+            "password": {
+                "type": "string",
+                "description": "User password"
+            }
+        },
+        "required": ["password"],
+    })
 
     def __init__(self, users: t.Mapping[str, str]):
         self.users = users
@@ -22,3 +53,27 @@ class DictSource(Source):
             user = User()
             user.id = uid
             return user
+
+    def delete(self,  uid: t.Any, request: Request) -> bool:
+        if uid not in self.users:
+            return False
+
+        del self.users[uid]
+        return True
+
+    def update(self,  uid: t.Any, data: dict, request: Request) -> bool:
+        if uid not in self.users:
+            return False
+
+        errors = tuple(self.update_schema.validate(data))
+        if not errors:
+            self.users[uid] = data['password']
+        return False
+
+    def add(self, data: dict, request: Request):
+        errors = tuple(self.update_schema.validate(data))
+        if not errors:
+            if data['username'] in self.users:
+                return False
+            self.users[data['username']] = data['password']
+        return False
