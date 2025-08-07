@@ -1,8 +1,10 @@
 import abc
 import typing as t
 import logging
+from wrapt import ObjectProxy
 from datetime import datetime
 from kavallerie.meta import User, Request
+from types import MappingProxyType
 
 
 logger = logging.getLogger(__name__)
@@ -15,6 +17,9 @@ class AuthenticationInfo(t.TypedDict):
 
 
 class Source(abc.ABC):
+
+    title: str
+    description: str
 
     @property
     @abc.abstractmethod
@@ -46,6 +51,43 @@ class Source(abc.ABC):
     @abc.abstractmethod
     def add(self, data: dict, request: Request):
         pass
+
+    @abc.abstractmethod
+    def __iter__(self) -> t.Iterator[User]:
+        pass
+
+
+class SourceProxy(ObjectProxy):
+    id: str
+
+    def __init__(self, source: Source, sid: str):
+        super().__init__(source)
+        self.id = sid
+
+
+class Sources(t.Iterable[Source]):
+
+    _sources: t.Mapping[str, SourceProxy]
+
+    def __init__(self, sources: t.Mapping[str, Source]):
+        self._sources = MappingProxyType({
+            sid: SourceProxy(source, sid) for sid, source in sources.items()
+        })
+
+    def __getitem__(self, name: str):
+        return self._sources.__getitem__(name)
+
+    def __iter__(self):
+        yield from self._sources.values()
+
+    def items(self):
+        return self._sources.items()
+
+    def keys(self):
+        return self._sources.keys()
+
+    def __contains__(self, name: str):
+        return name in self._sources
 
 
 Preflight = t.Callable[[Request], User | None]

@@ -1,7 +1,14 @@
+import uuid
 import typing as t
 from kavallerie.auth import Source
 from kavallerie.schema import JSONSchema
 from kavallerie.meta import Request, User
+
+
+class DictUser(User):
+
+    def __init__(self, id: str | int | uuid.UUID):
+        self.id = id
 
 
 class DictSource(Source):
@@ -36,23 +43,28 @@ class DictSource(Source):
         "required": ["password"],
     })
 
-    def __init__(self, users: t.Mapping[str, str]):
+    def __init__(self,
+                 users: t.Mapping[str, str], *,
+                 title: str,
+                 description: str):
         self.users = users
+        self.title = title
+        self.description = description
 
-    def find(self, credentials: t.Dict, request: Request) -> t.Optional[User]:
+    def __iter__(self):
+        for username in self.users.keys():
+            yield DictUser(username)
+
+    def find(self, credentials: t.Dict, request: Request) -> User | None:
         username = credentials.get('username')
         password = credentials.get('password')
         if username is not None and username in self.users:
             if self.users[username] == password:
-                user = User()
-                user.id = username
-                return user
+                return DictUser(username)
 
-    def fetch(self, uid, request) -> t.Optional[User]:
+    def fetch(self, uid, request) -> User | None:
         if uid in self.users:
-            user = User()
-            user.id = uid
-            return user
+            return DictUser(uid)
 
     def delete(self,  uid: t.Any, request: Request) -> bool:
         if uid not in self.users:
