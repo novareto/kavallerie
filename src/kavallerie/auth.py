@@ -31,6 +31,19 @@ class Source(abc.ABC):
     def update_schema(self) -> dict:
         pass
 
+    @property
+    @abc.abstractmethod
+    def search_schema(self) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def count(self, criterions: dict) -> int:
+        pass
+
+    @abc.abstractmethod
+    def search(self, criterions: dict, index: int = 0, size: int = 10) -> t.Iterator[User]:
+        pass
+
     @abc.abstractmethod
     def find(self,
              credentials: t.Dict, request: Request) -> User | None:

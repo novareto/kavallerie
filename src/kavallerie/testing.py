@@ -43,6 +43,18 @@ class DictSource(Source):
         "required": ["password"],
     })
 
+    search_schema = JSONSchema({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "User search",
+        "type": "object",
+        "properties": {
+            "username": {
+                "type": "string",
+                "description": "Username"
+            }
+        }
+    })
+
     def __init__(self,
                  users: t.Mapping[str, str], *,
                  title: str,
@@ -72,6 +84,23 @@ class DictSource(Source):
 
         del self.users[uid]
         return True
+
+    def count(self, data):
+        if not data:
+            return len(self.users)
+
+        found = 0
+        for i in self.users:
+            if data['username'] in i:
+                found += 1
+        return found
+
+    def search(self, data, index: int = 0, limit: int = 10):
+        if not data:
+            users = [DictUser(i) for i in self.users]
+        else:
+            users = [DictUser(i) for i in self.users if data['username'] in i]
+        return users[index:index+limit]
 
     def update(self,  uid: t.Any, data: dict, request: Request) -> bool:
         if uid not in self.users:
