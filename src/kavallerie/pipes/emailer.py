@@ -62,7 +62,7 @@ class BaseCourrier(ABC):
 class MaildirCourrier(BaseCourrier):
 
     def __init__(self, emitter: str, path: Path):
-        self.maibox = Maildir(path)
+        self.mailbox = Maildir(path)
         super().__init__(emitter)
 
     def commit_message(self, message):
