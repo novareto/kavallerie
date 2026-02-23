@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+0.7 (2026-02-23)
+----------------
+
+ * Sources are now named and are more advanced.
+   The authentication returns the source id where the user was found.
+   This requires a migration from previous versions.
+
+
 0.6 (2024-10-17)
 ----------------
 

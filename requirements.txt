@@ -1,3 +1,2 @@
 -e .[test]
-postrider@git+https://github.com/HorsemanWSGI/postrider.git
 MultiDict == 6.1

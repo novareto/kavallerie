@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kavallerie"
-version = "0.6"
+version = "0.7"
 license = {text = "BSD-3-Clause"}
 authors = [{name = "Novareto GmbH", email = "ck@novareto.de"}]
 maintainers = [{name = "Novareto GmbH", email = "ck@novareto.de"}]
