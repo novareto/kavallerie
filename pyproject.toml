@@ -32,6 +32,7 @@ dependencies = [
   "roughrider.cors",
   "roughrider.routing",
   "transaction",
+  "wrapt",
   "zope.interface"
 ]
 

@@ -17,7 +17,13 @@ def test_auth(environ, http_session_store):
         request = Request(None, environ=environ)
         authentication = Authentication(
             authenticator=HTTPSessionAuthenticator(
-                sources=[DictSource({'admin': 'admin'})]
+                sources={
+                    "test": DictSource(
+                        {'admin': 'admin'},
+                        title="Test",
+                        description="Test source"
+                    )
+                }
             )
         )
         store = http_session_store()
@@ -27,18 +33,23 @@ def test_auth(environ, http_session_store):
         assert pipeline(request)
         assert list(store) == []
 
-        user = authentication.authenticator.from_credentials(request, {
-            'username': 'admin',
-            'password': 'admin'
-        })
+        source_id, user = authentication.authenticator.from_credentials(
+            request, {
+                'username': 'admin',
+                'password': 'admin'
+            }
+        )
         assert user.id == 'admin'
 
-        authentication.authenticator.remember(request, user)
+        authentication.authenticator.remember(request, source_id, user)
         pipeline = session(authentication(handler))
         assert pipeline(request)
         assert list(store) == ['00000000-0000-0000-0000-000000000000']
         assert store.get('00000000-0000-0000-0000-000000000000') == {
-            'user': 'admin',
+            'user': {
+                'source_id': 'test',
+                'user_id': 'admin',
+            },
             'created': 1732622401,
             'expires': 1732622701,
         }

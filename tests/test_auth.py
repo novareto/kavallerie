@@ -58,9 +58,13 @@ def test_source(environ):
 
     request = Request(None, environ=environ)
     authenticator = BaseAuthenticator(
-        sources=[
-            DictSource({'admin': 'admin'}),
-        ]
+        sources={
+            "test": DictSource(
+                {'admin': 'admin'},
+                title="Test",
+                description="Test source"
+            )
+        }
     )
 
     user = authenticator.from_credentials(request, {
@@ -69,22 +73,35 @@ def test_source(environ):
     })
     assert user is None
 
-    user = authenticator.from_credentials(request, {
+    sourceid, user = authenticator.from_credentials(request, {
         'username': 'admin',
         'password': 'admin'
     })
     assert user.id == 'admin'
+    assert sourceid == "test"
 
 
 def test_several_sources(environ):
 
     request = Request(None, environ=environ)
     authenticator = BaseAuthenticator(
-        sources=[
-            DictSource({'admin': 'admin'}),
-            DictSource({'test': 'test'}),
-            DictSource({'john': 'doe'}),
-        ]
+        sources={
+            "test1": DictSource(
+                {'admin': 'admin'},
+                title="Test 1",
+                description="Test source 1"
+            ),
+            "test2": DictSource(
+                {'test': 'test'},
+                title="Test 2",
+                description="Test source 2"
+            ),
+            "test3": DictSource(
+                {'john': 'doe'},
+                title="Test 3",
+                description="Test source 3"
+            ),
+        }
     )
 
     user = authenticator.from_credentials(request, {
@@ -93,8 +110,9 @@ def test_several_sources(environ):
     })
     assert user is None
 
-    user = authenticator.from_credentials(request, {
+    sourceid, user = authenticator.from_credentials(request, {
         'username': 'test',
         'password': 'test'
     })
     assert user.id == 'test'
+    assert sourceid == "test2"
