@@ -41,6 +41,10 @@ class Source(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def change_password(self, value: str) -> int:
+        pass
+
+    @abc.abstractmethod
     def search(self, criterions: dict, index: int = 0, size: int = 10) -> t.Iterator[User]:
         pass
 
