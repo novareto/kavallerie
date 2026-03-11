@@ -22,26 +22,21 @@ class BaseAuthenticator(Authenticator):
     def __init__(self, sources: t.Mapping[str, Source] | None = None):
         self.sources = dict(sources) if sources is not None else {}
 
-    def get_challenging_sources(self):
-        for source_id, source in self.sources.items():
-            if Challenge in source.actions:
-                yield source_id, source
-
     def challenge(
             self, request: Request, credentials: dict
     ) -> tuple[str, User] | tuple[None, None]:
-        for source_id, source in self.get_challenging_sources():
-            action = source.get_action(Challenge, request)
-            user = action.challenge(credentials)
-            if user is not None:
-                return source_id, user
+        for source_id, source in self.sources.items():
+            if action := source.get_action(Challenge, request):
+                user = action.challenge(credentials)
+                if user is not None:
+                    return source_id, user
         return None, None
 
     def identify(self, request: Request) -> User | None:
         for source in self.sources.values():
-            if Preflight in source.actions:
+            if action := source.get_action(Preflight, request):
                 logger.info(f'Preflight found: {source.title}')
-                user = source.actions[Preflight].preflight(request)
+                user = action.preflight()
                 if user is not None:
                     logger.info(
                         f'Preflight user found by {source.title}: {user}.')
