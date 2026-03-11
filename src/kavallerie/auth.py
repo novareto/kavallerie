@@ -1,14 +1,13 @@
-import abc
 import typing as t
 import logging
-from wrapt import ObjectProxy
-from datetime import datetime
-from kavallerie.meta import User, Request
-from types import MappingProxyType
+from authsources.abc.identity import User, anonymous
+from authsources.abc.source import Source
+from authsources.abc.actions import Challenge, Preflight
+from authsources.abc import Authenticator
+from kavallerie.meta import Request
 
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger("kavallerie.auth")
 
 
 class AuthenticationInfo(t.TypedDict):
@@ -16,138 +15,49 @@ class AuthenticationInfo(t.TypedDict):
     user_id: str
 
 
-class Source(abc.ABC):
-
-    title: str
-    description: str
-
-    @property
-    @abc.abstractmethod
-    def create_schema(self) -> dict:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def update_schema(self) -> dict:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def search_schema(self) -> dict:
-        pass
-
-    @abc.abstractmethod
-    def count(self, criterions: dict) -> int:
-        pass
-
-    @abc.abstractmethod
-    def change_password(self, value: str) -> int:
-        pass
-
-    @abc.abstractmethod
-    def search(self, criterions: dict, index: int = 0, size: int = 10) -> t.Iterator[User]:
-        pass
-
-    @abc.abstractmethod
-    def find(self,
-             credentials: t.Dict, request: Request) -> User | None:
-        pass
-
-    @abc.abstractmethod
-    def fetch(self, uid: t.Any, request: Request) -> User | None:
-        pass
-
-    @abc.abstractmethod
-    def delete(self,  uid: t.Any, request: Request) -> bool:
-        pass
-
-    @abc.abstractmethod
-    def update(self,  uid: t.Any, data: dict, request: Request) -> bool:
-        pass
-
-    @abc.abstractmethod
-    def add(self, data: dict, request: Request):
-        pass
-
-    @abc.abstractmethod
-    def __iter__(self) -> t.Iterator[User]:
-        pass
-
-
-class SourceProxy(ObjectProxy):
-    id: str
-
-    def __init__(self, source: Source, sid: str):
-        super().__init__(source)
-        self.id = sid
-
-
-class Sources(t.Iterable[Source]):
-
-    _sources: t.Mapping[str, SourceProxy]
-
-    def __init__(self, sources: t.Mapping[str, Source]):
-        self._sources = MappingProxyType({
-            sid: SourceProxy(source, sid) for sid, source in sources.items()
-        })
-
-    def __getitem__(self, name: str):
-        return self._sources.__getitem__(name)
-
-    def __iter__(self):
-        yield from self._sources.values()
-
-    def items(self):
-        return self._sources.items()
-
-    def keys(self):
-        return self._sources.keys()
-
-    def __contains__(self, name: str):
-        return name in self._sources
-
-
-Preflight = t.Callable[[Request], User | None]
-
-
-class BaseAuthenticator:
+class BaseAuthenticator(Authenticator):
 
     sources: dict[str, Source]
-    preflights: list[Preflight]
 
-    def __init__(self,
-                 sources: t.Mapping[str, Source] | None = None,
-                 preflights: t.Iterable[Preflight] | None = None
-                 ):
-        self.sources = sources is not None and sources or {}
-        self.preflights = preflights is not None and list(preflights) or []
+    def __init__(self, sources: t.Mapping[str, Source] | None = None):
+        self.sources = dict(sources) if sources is not None else {}
 
-    def from_credentials(self,
-                         request,
-                         credentials: dict) -> tuple[str, User] | None:
+    def get_challenging_sources(self):
         for source_id, source in self.sources.items():
-            user = source.find(credentials, request)
+            if Challenge in source.actions:
+                yield source_id, source
+
+    def challenge(
+            self, request: Request, credentials: dict
+    ) -> tuple[str, User] | tuple[None, None]:
+        for source_id, source in self.get_challenging_sources():
+            action = source.get_action(Challenge, request)
+            user = action.challenge(credentials)
             if user is not None:
                 return source_id, user
+        return None, None
 
-    def identify(self, request) -> User | None:
-        if self.preflights:
-            logger.info(f'Authentication preflight found.')
-            for resolver in self.preflights:
-                if (user := resolver(request)) is not None:
+    def identify(self, request: Request) -> User | None:
+        for source in self.sources.values():
+            if Preflight in source.actions:
+                logger.info(f'Preflight found: {source.title}')
+                user = source.actions[Preflight].preflight(request)
+                if user is not None:
                     logger.info(
-                        f'Preflight user found by {resolver}: {user}.')
+                        f'Preflight user found by {source.title}: {user}.')
                     return user
-            logger.info(f'Authentication preflight unsuccessful.')
+                logger.info('Authentication preflight unsuccessful.')
 
-        logger.info(f'Authentication initiated.')
+        logger.info('Authentication initiated.')
         if (info := self.get_stored_info(request)) is not None:
             source = self.sources[info['source_id']]
-            user = source.fetch(info['user_id'], request)
+            user = source.get(info['user_id'])
             if user is not None:
                 logger.info(
-                    f"Authentication by {info['source_id']} successful: {user}")
+                    f"Source {info['source_id']} found: {user}")
                 return user
+
+        return anonymous
 
     def get_stored_info(self, request) -> AuthenticationInfo:
         pass
@@ -161,24 +71,27 @@ class BaseAuthenticator:
 
 class HTTPSessionAuthenticator(BaseAuthenticator):
 
-    user_key: str
+    user_key: str = "user"
 
-    def __init__(self, user_key: str = "user", **kwargs):
+    def __init__(self, *,
+                 user_key: str = "user",
+                 sources: t.Mapping[str, Source] | None = None):
         self.user_key = user_key
-        super().__init__(**kwargs)
+        super().__init__(sources=sources)
 
-    def get_stored_info(self, request) -> AuthenticationInfo:
-        if (session := request.utilities.get('http_session')) is not None:
-            return session.get(self.user_key, None)
+    def get_stored_info(self, request: Request) -> AuthenticationInfo:
+        session = request.utilities['http_session']
+        return session.get(self.user_key, None)
 
-    def forget(self, request) -> None:
-        if (session := request.utilities.get('http_session')) is not None:
-            session.clear()
+    def forget(self, request: Request) -> None:
+        session = request.utilities['http_session']
+        session.clear()
         request.user = None
 
-    def remember(self, request, source_id: str, user: User) -> None:
-        if (session := request.utilities.get('http_session')) is not None:
-            session[self.user_key] = AuthenticationInfo(
+    def remember(
+            self, request: Request, source_id: str, user: User) -> None:
+        session = request.utilities['http_session']
+        session[self.user_key] = AuthenticationInfo(
                 user_id=user.id,
                 source_id=source_id
             )

@@ -1,7 +1,9 @@
 from kavallerie.request import Request
 from kavallerie.auth import BaseAuthenticator
-from kavallerie.testing import DictSource
-from kavallerie.meta import User
+from authsources.abc.identity import User, anonymous
+from authsources.abc.source import Source
+from authsources.abc.actions import Preflight
+from authsources.sources.mapping import DictSource
 
 
 class UserClass(User):
@@ -14,25 +16,32 @@ forceduser = UserClass("Forced")
 testuser = UserClass("Whatever")
 
 
-def test_no_resolve(environ):
+class FakePreflight(Preflight):
 
-    def preflight(request):
+    def preflight(self):
         return testuser
+
+
+class FakeSource(Source):
+    title: str = "Fake"
+    description: str = "Fake source for testing purposes."
+    actions = {
+        Preflight: FakePreflight
+    }
+
+
+def test_no_resolve(environ):
 
     request = Request(None, environ=environ, user=forceduser)
     authenticator = BaseAuthenticator()
 
     user = authenticator.identify(request)
-    assert user is None
+    assert user is anonymous
 
 
 def test_preflight(environ):
-
-    def preflight(request):
-        return testuser
-
     request = Request(None, environ=environ)
-    authenticator = BaseAuthenticator(preflights=[preflight])
+    authenticator = BaseAuthenticator(sources={"fake": FakeSource()})
 
     user = authenticator.identify(request)
     assert user is testuser
@@ -47,7 +56,7 @@ def test_no_source(environ):
     request = Request(None, environ=environ)
     authenticator = BaseAuthenticator()
 
-    user = authenticator.from_credentials(request, {
+    sourceid, user = authenticator.challenge(request, {
         'username': 'john',
         'password': 'test'
     })
@@ -67,13 +76,13 @@ def test_source(environ):
         }
     )
 
-    user = authenticator.from_credentials(request, {
+    sourceid, user = authenticator.challenge(request, {
         'username': 'john',
         'password': 'test'
     })
     assert user is None
 
-    sourceid, user = authenticator.from_credentials(request, {
+    sourceid, user = authenticator.challenge(request, {
         'username': 'admin',
         'password': 'admin'
     })
@@ -104,13 +113,13 @@ def test_several_sources(environ):
         }
     )
 
-    user = authenticator.from_credentials(request, {
+    sourceid, user = authenticator.challenge(request, {
         'username': 'john',
         'password': 'test'
     })
     assert user is None
 
-    sourceid, user = authenticator.from_credentials(request, {
+    sourceid, user = authenticator.challenge(request, {
         'username': 'test',
         'password': 'test'
     })

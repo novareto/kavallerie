@@ -1,8 +1,8 @@
 from freezegun import freeze_time
-from kavallerie.meta import User
+from authsources.abc.identity import User
 from kavallerie.request import Request
 from kavallerie.response import Response
-from kavallerie.testing import DictSource
+from authsources.sources.mapping import DictSource
 from kavallerie.pipes.session import HTTPSession
 from kavallerie.auth import HTTPSessionAuthenticator
 from kavallerie.pipes.authentication import Authentication
@@ -33,7 +33,7 @@ def test_auth(environ, http_session_store):
         assert pipeline(request)
         assert list(store) == []
 
-        source_id, user = authentication.authenticator.from_credentials(
+        source_id, user = authentication.authenticator.challenge(
             request, {
                 'username': 'admin',
                 'password': 'admin'

@@ -4,10 +4,7 @@ import typing as t
 from dataclasses import dataclass, field
 from kavallerie.pipeline import Pipeline
 from kavallerie.events import Subscribers
-
-
-class User(abc.ABC):
-    id: str | int | uuid.UUID
+from authsources.abc.identity import User, anonymous
 
 
 class Request:
@@ -16,12 +13,12 @@ class Request:
 
     app: 'Application'
     utilities: t.Mapping[str, t.Any]
-    user: t.Optional[User]
+    user: User | None
 
     def __init__(self,
                  app: 'Application',
-                 user: t.Optional[User] = None,
-                 utilities: t.Optional[t.Mapping[str, t.Any]] = None):
+                 user: User | None = anonymous,
+                 utilities: t.Mapping[str, t.Any] | None = None):
         self.app = app
         self.user = user
         self.utilities = utilities is not None and utilities or {}

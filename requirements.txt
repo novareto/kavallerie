@@ -1,2 +1,3 @@
 -e .[test]
+-e git+ssh://git@github.com/HorsemanWSGI/authsources.git#egg=authsources
 MultiDict == 6.1
