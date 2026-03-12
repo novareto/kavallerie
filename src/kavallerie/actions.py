@@ -211,6 +211,7 @@ class ContextualActions:
         else:
             actions = list(
                 self.actions.all_actions_for(context.__class__))
+
         actions.sort(key=order)
         for action in actions:
             if action.evaluate(context=context, request=self.request) is None:

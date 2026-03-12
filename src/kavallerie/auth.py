@@ -26,7 +26,7 @@ class BaseAuthenticator(Authenticator):
             self, request: Request, credentials: dict
     ) -> tuple[str, User] | tuple[None, None]:
         for source_id, source in self.sources.items():
-            if action := source.get_action(Challenge, request):
+            if action := source.get(Challenge):
                 user = action.challenge(credentials)
                 if user is not None:
                     return source_id, user
@@ -34,9 +34,9 @@ class BaseAuthenticator(Authenticator):
 
     def identify(self, request: Request) -> User | None:
         for source in self.sources.values():
-            if action := source.get_action(Preflight, request):
+            if action := source.get(Preflight):
                 logger.info(f'Preflight found: {source.title}')
-                user = action.preflight()
+                user = action.preflight(request)
                 if user is not None:
                     logger.info(
                         f'Preflight user found by {source.title}: {user}.')
