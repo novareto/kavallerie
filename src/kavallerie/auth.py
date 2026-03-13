@@ -1,6 +1,6 @@
 import typing as t
 import logging
-from authsources.abc.identity import User, anonymous
+from authsources.abc.identity import User
 from authsources.abc.source import Source
 from authsources.abc.actions import Challenge, Preflight
 from authsources.abc import Authenticator
@@ -52,7 +52,7 @@ class BaseAuthenticator(Authenticator):
                     f"Source {info['source_id']} found: {user}")
                 return user
 
-        return anonymous
+        return None
 
     def get_stored_info(self, request) -> AuthenticationInfo:
         pass

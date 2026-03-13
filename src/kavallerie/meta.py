@@ -4,7 +4,7 @@ import typing as t
 from dataclasses import dataclass, field
 from kavallerie.pipeline import Pipeline
 from kavallerie.events import Subscribers
-from authsources.abc.identity import User, anonymous
+from authsources.abc.identity import User
 
 
 class Request:
@@ -17,7 +17,7 @@ class Request:
 
     def __init__(self,
                  app: 'Application',
-                 user: User | None = anonymous,
+                 user: User | None = None,
                  utilities: t.Mapping[str, t.Any] | None = None):
         self.app = app
         self.user = user

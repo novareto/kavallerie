@@ -1,6 +1,6 @@
 from kavallerie.request import Request
 from kavallerie.auth import BaseAuthenticator
-from authsources.abc.identity import User, anonymous
+from authsources.abc.identity import User
 from authsources.abc.source import Source
 from authsources.abc.actions import Preflight
 from authsources.sources.mapping import DictSource
@@ -36,7 +36,7 @@ def test_no_resolve(environ):
     authenticator = BaseAuthenticator()
 
     user = authenticator.identify(request)
-    assert user is anonymous
+    assert user is None
 
 
 def test_preflight(environ):
