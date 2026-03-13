@@ -2,7 +2,7 @@ import typing as t
 import logging
 from authsources.abc.identity import User
 from authsources.abc.source import Source
-from authsources.abc.actions import Challenge, Preflight
+from authsources.abc.actions import Challenge, Preflight, Getter
 from authsources.abc import Authenticator
 from kavallerie.meta import Request
 
@@ -46,11 +46,12 @@ class BaseAuthenticator(Authenticator):
         logger.info('Authentication initiated.')
         if (info := self.get_stored_info(request)) is not None:
             source = self.sources[info['source_id']]
-            user = source.get(info['user_id'])
-            if user is not None:
-                logger.info(
-                    f"Source {info['source_id']} found: {user}")
-                return user
+            if action := source.get(Getter):
+                user = action.get(info['user_id'])
+                if user is not None:
+                    logger.info(
+                        f"Source {info['source_id']} found: {user}")
+                    return user
 
         return None
 
