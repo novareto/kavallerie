@@ -1,8 +1,8 @@
 from kavallerie.request import Request
 from kavallerie.auth import BaseAuthenticator
-from authsources.abc.identity import User
-from authsources.abc.source import Source
-from authsources.abc.actions import Preflight
+from authsources.identity import User
+from authsources.source import Source
+from authsources.protocols import Preflight
 from authsources.sources.mapping import DictSource
 
 

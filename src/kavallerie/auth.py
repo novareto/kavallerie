@@ -1,9 +1,9 @@
 import typing as t
 import logging
-from authsources.abc.identity import User
-from authsources.abc.source import Source
-from authsources.abc.actions import Challenge, Preflight, Getter
-from authsources.abc import Authenticator
+from authsources.identity import User
+from authsources.source import Source
+from authsources.protocols import Challenge, Preflight, Getter
+from authsources.authenticator import Authenticator
 from kavallerie.meta import Request
 
 
