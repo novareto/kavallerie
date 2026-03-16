@@ -3,7 +3,7 @@ import logging
 from kavallerie.request import Request
 from kavallerie.auth import BaseAuthenticator
 from kavallerie.pipeline import Handler
-from authsources.abc.identity import User
+from authsources.identity import User
 
 
 logger = logging.getLogger(__name__)
