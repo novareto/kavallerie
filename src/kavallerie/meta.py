@@ -4,7 +4,7 @@ import typing as t
 from dataclasses import dataclass, field
 from kavallerie.pipeline import Pipeline
 from kavallerie.events import Subscribers
-from authsources.abc.identity import User
+from authsources.identity import User
 
 
 class Request:
