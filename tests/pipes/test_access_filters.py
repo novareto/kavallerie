@@ -67,28 +67,23 @@ def test_security_bypass_filter(environ):
     def handler(request):
         return Response(201)
 
-    request = Request(None, environ=environ)
-    request.path = '/login'
+    request = Request(None, environ={**environ, "PATH_INFO": '/login'})
     response = security_bypass(['/login'])(handler, request)
     assert response.status == 201
 
-    request = Request(None, environ=environ)
-    request.path = '/login/'
+    request = Request(None, environ={**environ, "PATH_INFO": '/login/'})
     response = security_bypass(['/login'])(handler, request)
     assert response.status == 201
 
-    request = Request(None, environ=environ)
-    request.path = '/test/subpath'
+    request = Request(None, environ={**environ, "PATH_INFO": '/test/sub'})
     response = security_bypass(['/test'])(handler, request)
     assert response.status == 201
 
-    request = Request(None, environ=environ)
-    request.path = '/test'
+    request = Request(None, environ={**environ, "PATH_INFO": '/test'})
     response = security_bypass(['/login'])(handler, request)
     assert response is None
 
-    request = Request(None, environ=environ)
-    request.path = '/test'
+    request = Request(None, environ={**environ, "PATH_INFO": '/test'})
     response = security_bypass(['/test2'])(handler, request)
     assert response is None
 
@@ -101,19 +96,16 @@ def test_twoFA_filter(environ):
     def handler(request):
         return Response(201)
 
-    request = Request(None, environ=environ)
-    request.path = '/index'
+    request = Request(None, environ={**environ, "PATH_INFO": '/index'})
     response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
     assert response.status == 303
     assert response.headers['Location'] == '/sms_qr_code'
 
-    request = Request(None, environ=environ)
-    request.path = '/sms_qr_code'
+    request = Request(None, environ={**environ, "PATH_INFO": '/sms_qr_code'})
     response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
     assert response.status == 201
 
-    request = Request(None, environ=environ)
+    request = Request(None, environ={**environ, "PATH_INFO": '/index'})
     request.twoFA = True
-    request.path = '/index'
     response = TwoFA('/sms_qr_code', twofa_checker)(handler, request)
     assert response is None

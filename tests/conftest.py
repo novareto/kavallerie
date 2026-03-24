@@ -6,6 +6,28 @@ from frozendict import frozendict
 from http_session.meta import Store
 from unittest.mock import Mock, patch
 from transaction import TransactionManager
+from horseman.mapping import RootNode
+from horseman.exceptions import HTTPError
+from horseman.environ import WSGIEnvironWrapper
+from kavallerie.routes import Routes
+
+
+class MockRoutingNode(RootNode):
+
+    def __init__(self):
+        self.routes = Routes()
+
+    def resolve(self, environ: dict):
+        request = WSGIEnvironWrapper(environ)
+        route = self.routes.match_method(request.path, request.method)
+        if route is not None:
+            return route.endpoint(request, **route.params)
+        raise HTTPError(404)
+
+
+@pytest.fixture
+def node():
+    return MockRoutingNode()
 
 
 class DummyTransactionManager(TransactionManager):

@@ -15,14 +15,14 @@ def CORS(handler: Handler):
         # If a route was possible registered for OPTIONS,
         # this will override it.
         Logger.debug('Cors policy found: crafting preflight response.')
-        origin = request.environ.get('ORIGIN')
-        acr_method = request.environ.get('ACCESS_CONTROL_REQUEST_METHOD')
-        acr_headers = request.environ.get('ACCESS_CONTROL_REQUEST_HEADERS')
-        return Response(200, headers=Headers(
-            request.cors_policy.preflight(
-                origin=origin,
-                acr_method=acr_method,
-                acr_headers=acr_headers
-            )))
+        origin = request.get('ORIGIN')
+        acr_method = request.get('ACCESS_CONTROL_REQUEST_METHOD')
+        acr_headers = request.get('ACCESS_CONTROL_REQUEST_HEADERS')
+        headers = request.cors_policy.preflight(
+            origin=origin,
+            acr_method=acr_method,
+            acr_headers=acr_headers
+        )
+        return Response(200, headers=headers)
 
     return cors_policy_handler

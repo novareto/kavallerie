@@ -3,35 +3,19 @@ import typing as t
 import urllib.parse
 import horseman.parsers
 import horseman.types
-import horseman.http
-import horseman.meta
+import horseman.datastructures
+from horseman.environ import WSGIEnvironWrapper
+from horseman.mapping import Node
 from functools import cached_property
 from http_session.session import Session
-from roughrider.routing.meta import Route
 from roughrider.cors.policy import CORSPolicy
 from kavallerie.datastructures import TypeCastingDict
 from kavallerie import meta
 
 
-class Query(TypeCastingDict):
-
-    @classmethod
-    def from_value(cls, value: str):
-        return cls(urllib.parse.parse_qsl(
-            value, keep_blank_values=True, strict_parsing=True))
-
-    @classmethod
-    def from_environ(cls, environ: dict):
-        qs = environ.get('QUERY_STRING', '')
-        if qs:
-            return cls.from_value(qs)
-        return cls()
-
-
-class Request(meta.Request, horseman.meta.Overhead):
+class Request(meta.Request, WSGIEnvironWrapper):
 
     __slots__ = (
-        '_data',
         'app',
         'cors_policy',
         'environ',
@@ -43,30 +27,17 @@ class Request(meta.Request, horseman.meta.Overhead):
     )
 
     # arguments
-    app: horseman.meta.Node
+    app: Node
     environ: horseman.types.Environ
     user: meta.User | None
     cors_policy: CORSPolicy | None
-    route: Route | None
-
-    # computed from environ
-    path: str
-    query: Query
-    script_name: str
-    method: horseman.types.HTTPMethod
-    cookies: horseman.http.Cookies
-    content_type: horseman.http.ContentType | None
-    application_uri: str
-
-    # stored property
-    _data: horseman.parsers.Data | None
-
+    route: meta.Route | None
 
     def __init__(self,
                  app: meta.Application,
                  environ: horseman.types.Environ,
                  cors_policy: CORSPolicy | None = None,
-                 route: Route | None = None,
+                 route: meta.Route | None = None,
                  user: meta.User | None = None,
                  utilities: t.Mapping[str, t.Any] | None = None,
                  ):
@@ -74,69 +45,13 @@ class Request(meta.Request, horseman.meta.Overhead):
         self.user = user
         self.app = app
         self.utilities = utilities is not None and utilities or {}
-        self.environ = environ
+        self._environ = environ
         self.method = environ.get('REQUEST_METHOD', 'GET').upper()
         self.route = route
         self.cors_policy = cors_policy
         self.script_name = urllib.parse.quote(
             environ.get('SCRIPT_NAME', '')
         )
-
-    def extract(self) -> horseman.parsers.Data:
-        if self._data is None:
-            if self.content_type:
-                self._data = horseman.parsers.parser(
-                    self.environ['wsgi.input'], self.content_type)
-            else:
-                self._data = horseman.parsers.Data()
-        return self._data
-
-    @cached_property
-    def path(self):
-        if path := self.environ.get('PATH_INFO'):
-            return path.encode('latin-1').decode('utf-8')
-        return '/'
-
-    @cached_property
-    def query(self):
-        return Query.from_environ(self.environ)
-
-    @cached_property
-    def cookies(self):
-        return horseman.http.Cookies.from_environ(self.environ)
-
-    @cached_property
-    def content_type(self) -> horseman.http.ContentType | None:
-        if 'CONTENT_TYPE' in self.environ:
-            return horseman.http.ContentType.from_http_header(
-                self.environ['CONTENT_TYPE'])
-
-    @cached_property
-    def application_uri(self) -> str:
-        scheme = self.environ.get('wsgi.url_scheme', 'http')
-        http_host = self.environ.get('HTTP_HOST')
-        if not http_host:
-            server = self.environ['SERVER_NAME']
-            port = self.environ.get('SERVER_PORT', '80')
-        elif ':' in http_host:
-            server, port = http_host.split(':', 1)
-        else:
-            server = http_host
-            port = '80'
-
-        if (scheme == 'http' and port == '80') or \
-           (scheme == 'https' and port == '443'):
-            return f'{scheme}://{server}{self.script_name}'
-        return f'{scheme}://{server}:{port}{self.script_name}'
-
-    def uri(self, include_query=True) -> str:
-        url = self.application_uri
-        path_info = urllib.parse.quote(self.environ.get('PATH_INFO', ''))
-        if include_query:
-            qs = urllib.parse.quote(self.environ.get('QUERY_STRING', ''))
-            if qs:
-                return f"{url}{path_info}?{qs}"
-        return f"{url}{path_info}"
 
 
 __all__ = ['Request', 'Query']

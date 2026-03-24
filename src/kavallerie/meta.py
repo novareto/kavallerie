@@ -2,9 +2,50 @@ import abc
 import uuid
 import typing as t
 from dataclasses import dataclass, field
-from kavallerie.pipeline import Pipeline
-from kavallerie.events import Subscribers
 from authsources.identity import User
+from horseman.response import Response
+from horseman.environ import WSGIEnvironWrapper
+from horseman.types import WSGICallable, HTTPMethod
+from kavallerie.events import Subscribers
+from kavallerie.pipeline import Pipeline
+
+
+Endpoint = t.Callable[[WSGIEnvironWrapper], WSGICallable]
+HTTPMethods = t.Iterable[HTTPMethod]
+
+
+class APIView:
+    """View with methods to act as HTTP METHOD dispatcher.
+    Method names of the class must be a valid uppercase HTTP METHOD name.
+    example : OPTIONS, GET, POST
+    """
+
+    def __call__(self, request: WSGIEnvironWrapper) -> Response:
+        if worker := getattr(self, request.method, None):
+            return worker(request)
+
+        # Method not allowed
+        return Response(405)
+
+
+class RouteEndpoint(t.NamedTuple):
+    method: HTTPMethod
+    endpoint: Endpoint
+    metadata: t.Optional[t.Dict[t.Any, t.Any]] = None
+
+    def __call__(self, *args, **kwargs):
+        return self.endpoint(*args, **kwargs)
+
+
+class RouteDefinition(t.NamedTuple):
+    path: str
+    payload: t.Dict[HTTPMethod, RouteEndpoint]
+
+
+class Route(t.NamedTuple):
+    path: str
+    endpoint: RouteEndpoint
+    params: dict
 
 
 class Request:

@@ -1,3 +1,2 @@
+--extra-index-url https://pypi.bg-kooperation.de/
 -e .[test]
--e git+ssh://git@github.com/HorsemanWSGI/authsources.git#egg=authsources
-MultiDict == 6.1

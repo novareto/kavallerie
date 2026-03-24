@@ -1,8 +1,8 @@
 from freezegun import freeze_time
-from authsources.abc.identity import User
+from authsources.identity import User
 from kavallerie.request import Request
 from kavallerie.response import Response
-from authsources.sources.mapping import DictSource
+from authsources.sources.mapping import DictSource, Login
 from kavallerie.pipes.session import HTTPSession
 from kavallerie.auth import HTTPSessionAuthenticator
 from kavallerie.pipes.authentication import Authentication
@@ -19,9 +19,14 @@ def test_auth(environ, http_session_store):
             authenticator=HTTPSessionAuthenticator(
                 sources={
                     "test": DictSource(
-                        {'admin': 'admin'},
+                        {
+                            'admin': {
+                                "password": 'admin'
+                            }
+                        },
                         title="Test",
-                        description="Test source"
+                        description="Test source",
+                        actions=[Login]
                     )
                 }
             )

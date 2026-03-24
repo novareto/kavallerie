@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kavallerie"
-version = "1.0"
+version = "1.0a1"
 license = {text = "BSD-3-Clause"}
 authors = [{name = "Novareto GmbH", email = "ck@novareto.de"}]
 maintainers = [{name = "Novareto GmbH", email = "ck@novareto.de"}]
@@ -19,22 +19,21 @@ description = "Full-blown WSGI Framework using Horseman."
 readme = {file = "README.rst", content-type = "text/x-rst"}
 requires-python = ">=3.11"
 dependencies = [
+  "authsources",
   "frozendict",
   "gelidum",
-  "horseman>=0.6",
+  "horseman>=1.0a4",
   "http-session>=0.2",
   "importlib-metadata>=6.5",
   "importscan",
   "itsdangerous",
   "jsonschema-rs",
+  "orjson",
   "postrider",
   "prejudice",
-  "roughrider.cors",
-  "roughrider.routing",
   "transaction",
   "wrapt",
   "zope.interface",
-  "authsources",
 ]
 
 [project.urls]

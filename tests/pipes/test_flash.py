@@ -1,9 +1,8 @@
 import hamcrest
-from horseman.response import Response
+from kavallerie.response import Response
 from kavallerie.app import RoutingApplication
 from kavallerie.pipes.flash import flash
 from kavallerie.pipes.session import HTTPSession
-
 from webtest import TestApp as WSGIApp
 
 

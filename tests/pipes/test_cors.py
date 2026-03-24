@@ -1,4 +1,4 @@
-from roughrider.cors.policy import CORSPolicy
+from kavallerie.cors import CORSPolicy
 from kavallerie.request import Request
 from kavallerie.response import Response
 from kavallerie.pipes.cors import CORS

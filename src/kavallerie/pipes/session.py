@@ -84,8 +84,7 @@ class HTTPSession(MiddlewareFactory):
             elif session.new:
                 return response
 
-            domain = self.config.domain or \
-                request.environ['HTTP_HOST'].split(':', 1)[0]
+            domain = self.config.domain or request.domain
             cookie = self.manager.cookie(
                 session.sid,
                 request.script_name or '/',

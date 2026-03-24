@@ -10,7 +10,7 @@ def test_request(environ):
     assert request.cors_policy is None
     assert request.query == {}
     assert request.cookies == {}
-    assert request.content_type is None
+    assert request.content_type == ''
     assert request.application_uri == "http://test_domain.com"
     assert request.uri() == "http://test_domain.com/"
     assert request.uri(include_query=False) == "http://test_domain.com/"
