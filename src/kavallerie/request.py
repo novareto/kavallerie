@@ -6,11 +6,9 @@ import horseman.types
 import horseman.datastructures
 from horseman.environ import WSGIEnvironWrapper
 from horseman.mapping import Node
-from functools import cached_property
 from http_session.session import Session
-from roughrider.cors.policy import CORSPolicy
-from kavallerie.datastructures import TypeCastingDict
 from kavallerie import meta
+from kavallerie.cors import CORSPolicy
 
 
 class Request(meta.Request, WSGIEnvironWrapper):
@@ -18,17 +16,14 @@ class Request(meta.Request, WSGIEnvironWrapper):
     __slots__ = (
         'app',
         'cors_policy',
-        'environ',
-        'method',
+        '_environ',
         'route',
-        'script_name',
         'user',
         'utilities',
     )
 
     # arguments
     app: Node
-    environ: horseman.types.Environ
     user: meta.User | None
     cors_policy: CORSPolicy | None
     route: meta.Route | None
@@ -46,12 +41,8 @@ class Request(meta.Request, WSGIEnvironWrapper):
         self.app = app
         self.utilities = utilities is not None and utilities or {}
         self._environ = environ
-        self.method = environ.get('REQUEST_METHOD', 'GET').upper()
         self.route = route
         self.cors_policy = cors_policy
-        self.script_name = urllib.parse.quote(
-            environ.get('SCRIPT_NAME', '')
-        )
 
 
-__all__ = ['Request', 'Query']
+__all__ = ['Request']
