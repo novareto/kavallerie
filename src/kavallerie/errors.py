@@ -1,4 +1,4 @@
-from horseman.http import HTTPError
+from horseman.exceptions import HTTPError
 
 
 __all__ = ['HTTPError']
