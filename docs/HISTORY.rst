@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+1.0a1 (2026-03-24)
+------------------
+
+ * Using latest `horseman`.
+ * Backported `roughrider.routing` and `roughrider.cors`.
+ * Overall streamlining.
+
+
 0.7 (2026-02-23)
 ----------------
 
