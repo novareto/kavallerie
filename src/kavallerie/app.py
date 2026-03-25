@@ -16,7 +16,9 @@ class Application(meta.Application, RootNode):
     request_factory: t.Type[Request] = Request
 
     def handle_exception(self, exc_info: ExceptionInfo, environ: Environ):
-        pass
+        cls, exc, tb = exc_info
+        if isinstance(exc, HTTPError):
+            return Response(exc.status, body=exc.body)
 
     def endpoint(self, request) -> Response:
         raise NotImplementedError('Implement your own.')
