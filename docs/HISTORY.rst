@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+1.0a4 (2026-03-25)
+------------------
+
+ * Added `HTTPError` handling in the application.
+
+
 1.0a3 (2026-03-25)
 ------------------
 
