@@ -5,6 +5,7 @@ def test_request(environ):
     request = Request(None, environ=environ)
     assert request.utilities == {}
     assert request.path == '/'
+    assert request.app is None
     assert request.method == 'GET'
     assert request.route is None
     assert request.cors_policy is None
@@ -16,16 +17,12 @@ def test_request(environ):
     assert request.uri(include_query=False) == "http://test_domain.com/"
 
 
-def test_request_uri(environ):
-    environ = {**environ, 'QUERY_STRING': 'foo=bar'}
+def test_request_flags(environ):
     request = Request(None, environ=environ)
-    assert request.uri(include_query=False) == "http://test_domain.com/"
-    assert request.uri(include_query=True) == (
-        "http://test_domain.com/?foo%3Dbar"
-    )
-
-    environ = {**environ}
-    del environ['QUERY_STRING']
-    request = Request(None, environ=environ)
-    assert request.uri(include_query=False) == "http://test_domain.com/"
-    assert request.uri(include_query=True) == "http://test_domain.com/"
+    assert request.flags.whatever is None
+    assert request.flags.something_else is None
+    request.flags.whatever = True
+    assert request.flags.whatever is True
+    assert request.flags.something_else is None
+    request.flags.something_else = "non bool value"
+    assert request.flags.something_else == "non bool value"

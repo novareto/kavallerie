@@ -4,11 +4,18 @@ import urllib.parse
 import horseman.parsers
 import horseman.types
 import horseman.datastructures
+from types import SimpleNamespace
 from horseman.environ import WSGIEnvironWrapper
 from horseman.mapping import Node
 from http_session.session import Session
 from kavallerie import meta
 from kavallerie.cors import CORSPolicy
+
+
+class FlagsField(SimpleNamespace):
+
+    def __getattr__(self, name):
+        return None
 
 
 class Request(meta.Request, WSGIEnvironWrapper):
@@ -20,10 +27,12 @@ class Request(meta.Request, WSGIEnvironWrapper):
         'route',
         'user',
         'utilities',
+        'flags',
     )
 
     # arguments
     app: Node
+    flags: FlagsField
     user: meta.User | None
     cors_policy: CORSPolicy | None
     route: meta.Route | None
@@ -43,6 +52,7 @@ class Request(meta.Request, WSGIEnvironWrapper):
         self._environ = environ
         self.route = route
         self.cors_policy = cors_policy
+        self.flags = FlagsField()
 
 
 __all__ = ['Request']
