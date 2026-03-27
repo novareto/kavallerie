@@ -3,6 +3,7 @@ import uuid
 import typing as t
 from dataclasses import dataclass, field
 from authsources.identity import User
+from authsources.protocols import RequestProtocol
 from horseman.response import Response
 from horseman.environ import WSGIEnvironWrapper
 from horseman.types import WSGICallable, HTTPMethod
@@ -48,21 +49,24 @@ class Route(t.NamedTuple):
     params: dict
 
 
-class Request:
+class Request(RequestProtocol):
 
     __slots__ = ('app', 'user', 'utilities')
 
-    app: 'Application'
+    app: t.Optional['Application']
     utilities: t.Mapping[str, t.Any]
     user: User | None
+    headers: dict
 
     def __init__(self,
-                 app: 'Application',
+                 app: t.Optional['Application'] = None,
                  user: User | None = None,
+                 headers: t.Mapping[str, t.Any] | None = None,
                  utilities: t.Mapping[str, t.Any] | None = None):
         self.app = app
         self.user = user
         self.utilities = utilities is not None and utilities or {}
+        self.headers = headers is not None and headers or {}
 
 
 @dataclass

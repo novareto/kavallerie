@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+1.0a6 (2026-03-27)
+------------------
+
+ * `Request` now respects the `RequestProtocol` from `authsources`
+
+
 1.0a4 (2026-03-25)
 ------------------
 

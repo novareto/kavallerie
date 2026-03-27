@@ -15,6 +15,7 @@ def test_request(environ):
     assert request.application_uri == "http://test_domain.com"
     assert request.uri() == "http://test_domain.com/"
     assert request.uri(include_query=False) == "http://test_domain.com/"
+    assert request.headers is request._environ
 
 
 def test_request_flags(environ):

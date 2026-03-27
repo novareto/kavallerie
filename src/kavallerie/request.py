@@ -19,7 +19,7 @@ class FlagsField(SimpleNamespace):
         return None
 
 
-class Request(meta.Request, RequestProtocol, WSGIEnvironWrapper):
+class Request(WSGIEnvironWrapper, meta.Request):
 
     __slots__ = (
         'app',
@@ -32,15 +32,16 @@ class Request(meta.Request, RequestProtocol, WSGIEnvironWrapper):
     )
 
     # arguments
-    app: Node
+    app: meta.Application | None
     flags: FlagsField
     user: meta.User | None
     cors_policy: CORSPolicy | None
     route: meta.Route | None
 
     def __init__(self,
-                 app: meta.Application,
+                 app: meta.Application | None,
                  environ: horseman.types.Environ,
+                 *,
                  cors_policy: CORSPolicy | None = None,
                  route: meta.Route | None = None,
                  user: meta.User | None = None,
@@ -52,7 +53,7 @@ class Request(meta.Request, RequestProtocol, WSGIEnvironWrapper):
         self.route = route
         self.cors_policy = cors_policy
         self.flags = FlagsField()
-        super().__init__(environ)
+        WSGIEnvironWrapper.__init__(self, environ)
 
     @property
     def headers(self):
