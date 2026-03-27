@@ -5,6 +5,7 @@ import horseman.parsers
 import horseman.types
 import horseman.datastructures
 from types import SimpleNamespace
+from authsources.protocols import RequestProtocol
 from horseman.environ import WSGIEnvironWrapper
 from horseman.mapping import Node
 from http_session.session import Session
@@ -18,7 +19,7 @@ class FlagsField(SimpleNamespace):
         return None
 
 
-class Request(meta.Request, WSGIEnvironWrapper):
+class Request(meta.Request, RequestProtocol, WSGIEnvironWrapper):
 
     __slots__ = (
         'app',
@@ -45,14 +46,18 @@ class Request(meta.Request, WSGIEnvironWrapper):
                  user: meta.User | None = None,
                  utilities: t.Mapping[str, t.Any] | None = None,
                  ):
-        self._data = None
         self.user = user
         self.app = app
         self.utilities = utilities is not None and utilities or {}
-        self._environ = environ
         self.route = route
         self.cors_policy = cors_policy
         self.flags = FlagsField()
+        super().__init__(environ)
+
+    @property
+    def headers(self):
+        # Respecting the RequestProtocol
+        return self._environ
 
 
 __all__ = ['Request']
