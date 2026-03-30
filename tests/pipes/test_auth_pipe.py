@@ -1,5 +1,6 @@
 from freezegun import freeze_time
 from authsources.identity import User
+from kavallerie.auth import ResolvedUser
 from kavallerie.request import Request
 from kavallerie.response import Response
 from authsources.sources.mapping import DictSource, Login
@@ -38,15 +39,16 @@ def test_auth(environ, http_session_store):
         assert pipeline(request)
         assert list(store) == []
 
-        source_id, user = authentication.authenticator.challenge(
+        user = authentication.authenticator.challenge(
             request, {
                 'username': 'admin',
                 'password': 'admin'
             }
         )
         assert user.id == 'admin'
+        assert type(user) == ResolvedUser
 
-        authentication.authenticator.remember(request, source_id, user)
+        authentication.authenticator.remember(request, user.source_id, user)
         pipeline = session(authentication(handler))
         assert pipeline(request)
         assert list(store) == ['00000000-0000-0000-0000-000000000000']
