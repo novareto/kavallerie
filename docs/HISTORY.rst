@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+1.0a7 (2026-03-30)
+------------------
+
+ * `ResolvedUser` is now returned as a User wrapping proxy to account
+   for the source_id.
+
+
 1.0a6 (2026-03-27)
 ------------------
 
