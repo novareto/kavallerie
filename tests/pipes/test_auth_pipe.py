@@ -51,6 +51,8 @@ def test_auth(environ, http_session_store):
         authentication.authenticator.remember(request, user.source_id, user)
         pipeline = session(authentication(handler))
         assert pipeline(request)
+        assert type(request.user) is ResolvedUser
+        assert request.user.source_id == "test"
         assert list(store) == ['00000000-0000-0000-0000-000000000000']
         assert store.get('00000000-0000-0000-0000-000000000000') == {
             'user': {
