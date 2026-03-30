@@ -13,6 +13,7 @@ def security_bypass(urls: t.Iterable[str]) -> Filter:
     unprotected = frozenset(
         PurePosixPath(bypass) for bypass in urls
     )
+
     def _filter(caller, request):
         path = PurePosixPath(request.path)
         for bypass in unprotected:

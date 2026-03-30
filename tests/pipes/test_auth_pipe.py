@@ -70,3 +70,12 @@ def test_auth(environ, http_session_store):
         assert pipeline(request)
         assert list(store) == ['00000000-0000-0000-0000-000000000000']
         assert store.get('00000000-0000-0000-0000-000000000000') == {}
+
+
+    user = authentication.authenticator.challenge(
+        request, {
+            'username': 'test',
+            'password': 'test'
+        }
+    )
+    assert user is None

@@ -39,7 +39,7 @@ class BaseAuthenticator(Authenticator):
                 user = action.challenge(credentials)
                 if user is not None:
                     return ResolvedUser(user, source_id=source_id)
-        return None, None
+        return None
 
     def identify(self, request: Request) -> ResolvedUser | None:
         for source_id, source in self.sources.items():

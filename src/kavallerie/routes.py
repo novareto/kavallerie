@@ -144,7 +144,7 @@ class NamedRoutes(Routes):
 
     def add(self, path: str, payload: t.Dict[HTTPMethod, RouteEndpoint]):
         for verb, endpoint in payload.items():
-            if not endpoint.metadata or not 'name' in endpoint.metadata:
+            if not endpoint.metadata or 'name' not in endpoint.metadata:
                 continue
             name = endpoint.metadata['name']
             if found := self._names.get(name):
