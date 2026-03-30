@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+1.0a8 (2026-03-30)
+------------------
+
+ * Unsuccessful auth now returns "None" only, not a tuple.
+
+
 1.0a7 (2026-03-30)
 ------------------
 
