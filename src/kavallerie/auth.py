@@ -1,5 +1,6 @@
 import typing as t
 import logging
+from wrapt import ObjectProxy
 from authsources.identity import User
 from authsources.source import Source
 from authsources.protocols import Challenge, Preflight, Getter
@@ -8,6 +9,14 @@ from kavallerie.meta import Request
 
 
 logger = logging.getLogger("kavallerie.auth")
+
+
+class ResolvedUser(ObjectProxy):
+    source_id: str | None
+
+    def __init__(self, user: User, source_id: str | None = None):
+        super().__init__(user)
+        self.source_id = source_id
 
 
 class AuthenticationInfo(t.TypedDict):
@@ -24,23 +33,23 @@ class BaseAuthenticator(Authenticator):
 
     def challenge(
             self, request: Request, credentials: dict
-    ) -> tuple[str, User] | tuple[None, None]:
+    ) -> ResolvedUser | None:
         for source_id, source in self.sources.items():
             if action := source.get(Challenge):
                 user = action.challenge(credentials)
                 if user is not None:
-                    return source_id, user
+                    return ResolvedUser(user, source_id=source_id)
         return None, None
 
-    def identify(self, request: Request) -> User | None:
-        for source in self.sources.values():
+    def identify(self, request: Request) -> ResolvedUser | None:
+        for source_id, source in self.sources.items():
             if action := source.get(Preflight):
                 logger.info(f'Preflight found: {source.title}')
                 user = action.preflight(request)
                 if user is not None:
                     logger.info(
                         f'Preflight user found by {source.title}: {user}.')
-                    return user
+                    return ResolvedUser(user, source_id=source_id)
                 logger.info('Authentication preflight unsuccessful.')
 
         logger.info('Authentication initiated.')
@@ -51,7 +60,7 @@ class BaseAuthenticator(Authenticator):
                 if user is not None:
                     logger.info(
                         f"Source {info['source_id']} found: {user}")
-                    return user
+                    return ResolvedUser(user, source_id=info['user_id'])
 
         return None
 
@@ -88,7 +97,7 @@ class HTTPSessionAuthenticator(BaseAuthenticator):
             self, request: Request, source_id: str, user: User) -> None:
         session = request.utilities['http_session']
         session[self.user_key] = AuthenticationInfo(
-                user_id=user.id,
-                source_id=source_id
-            )
-        request.user = user
+            user_id=user.id,
+            source_id=source_id
+        )
+        request.user = ResolvedUser(user, source_id=source_id)
