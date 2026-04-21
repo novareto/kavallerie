@@ -60,7 +60,7 @@ class BaseAuthenticator(Authenticator):
                 if user is not None:
                     logger.info(
                         f"Source {info['source_id']} found: {user}")
-                    return ResolvedUser(user, source_id=info['user_id'])
+                    return ResolvedUser(user, source_id=info['source_id'])
 
         return None
 
