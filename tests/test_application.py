@@ -12,6 +12,7 @@ def test_application_path_handling(environ):
     def handler(request):
         return Response(200)
 
+    application.finalize()
     response = application.resolve({**environ, 'PATH_INFO': '/'})
     assert response.status == 200
 
@@ -29,7 +30,7 @@ def test_application_exception_handling(environ):
     def handler(request):
         raise HTTPError(400, body="This is an error")
 
-    app = WebApp(application)
+    app = WebApp(application.finalize())
     response = app.get('/', expect_errors=True)
     assert response.status == '400 Bad Request'
     assert response.body == b'This is an error'

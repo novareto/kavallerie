@@ -1,7 +1,8 @@
 import hamcrest
 import pytest
 from kavallerie.meta import APIView
-from kavallerie.routes import get_routables
+from kavallerie.routing import get_endpoints
+from plum import NotFoundLookupError
 
 
 def view_func(request):
@@ -30,35 +31,36 @@ class View(APIView):
 
 
 def test_simple_class_payload():
-    payload = list(get_routables(SomeCallable))
+    payload = list(get_endpoints(SomeCallable))
+
     hamcrest.assert_that(
         payload, hamcrest.contains_exactly(
             hamcrest.contains_exactly(
                 hamcrest.has_property(
                     '__func__', hamcrest.is_(SomeCallable.__call__)),
-                ['GET']
+                {'GET',}
             ),
         )
     )
 
-    payload = list(get_routables(SomeCallable, methods=['POST']))
+    payload = list(get_endpoints(SomeCallable, methods=['POST']))
     hamcrest.assert_that(
         payload, hamcrest.contains_exactly(
             hamcrest.contains_exactly(
                 hamcrest.has_property(
                     '__func__', hamcrest.is_(SomeCallable.__call__)),
-                ['POST']
+                {'POST'}
             ),
         )
     )
 
-    payload = list(get_routables(SomeCallable, methods=['DELETE', 'POST']))
+    payload = list(get_endpoints(SomeCallable, methods=['DELETE', 'POST']))
     hamcrest.assert_that(
         payload, hamcrest.contains_exactly(
             hamcrest.contains_exactly(
                 hamcrest.has_property(
                     '__func__', hamcrest.is_(SomeCallable.__call__)),
-                ['DELETE', 'POST']
+                {'DELETE', 'POST'}
             ),
         )
     )
@@ -67,37 +69,34 @@ def test_simple_class_payload():
 def test_simple_instance_payload():
     inst = SomeCallable()
 
-    with pytest.raises(ValueError) as exc:
-        list(get_routables(inst))
-
-    assert str(exc.value) == (
-        f'Unknown type of route: {inst}.')
+    with pytest.raises(NotFoundLookupError) as exc:
+        list(get_endpoints(inst))
 
 
 def test_view_class_payload():
-    payload = list(get_routables(View))
+    payload = list(get_endpoints(View))
     hamcrest.assert_that(
         payload, hamcrest.contains_exactly(
             hamcrest.contains_exactly(
                 hamcrest.has_property(
                     '__func__', hamcrest.is_(View.GET)),
-                ['GET'],
+                {'GET'},
             ),
             hamcrest.contains_exactly(
                 hamcrest.has_property(
                     '__func__', hamcrest.is_(View.HEAD)),
-                ['HEAD']
+                {'HEAD'}
             ),
             hamcrest.contains_exactly(
                 hamcrest.has_property(
                     '__func__', hamcrest.is_(View.POST)),
-                ['POST']
+                {'POST'}
             ),
         )
     )
 
     with pytest.raises(AttributeError) as exc:
-        list(get_routables(View, methods=['POST']))
+        list(get_endpoints(View, methods=['POST']))
 
     assert str(exc.value) == (
         'Registration of APIView does not accept methods.')
@@ -105,17 +104,17 @@ def test_view_class_payload():
 
 def test_view_instance_payload():
     inst = View()
-    payload = list(get_routables(inst))
+    payload = list(get_endpoints(inst))
     hamcrest.assert_that(
         payload, hamcrest.contains_exactly(
-            (inst.GET, ['GET']),
-            (inst.HEAD, ['HEAD']),
-            (inst.POST, ['POST'])
+            (inst.GET, {'GET'}),
+            (inst.HEAD, {'HEAD'}),
+            (inst.POST, {'POST'})
         )
     )
 
     with pytest.raises(AttributeError) as exc:
-        list(get_routables(inst, methods=['POST']))
+        list(get_endpoints(inst, methods=['POST']))
 
     assert str(exc.value) == (
         'Registration of APIView does not accept methods.')

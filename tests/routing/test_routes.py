@@ -1,10 +1,10 @@
-from kavallerie.routes import Routes
-from kavallerie.meta import RouteDefinition, RouteEndpoint
+from autorouting import Route
+from kavallerie.routing import Router
 
 
 def test_merge_method_registration_operation():
-    router1 = Routes()
-    router2 = Routes()
+    router1 = Router()
+    router2 = Router()
 
     @router1.register('/test')
     def my_get(request):
@@ -15,41 +15,23 @@ def test_merge_method_registration_operation():
         pass
 
     assert list(router1) == [
-        RouteDefinition(path='/test', payload={
-            'GET': RouteEndpoint(
-                method='GET',
-                endpoint=my_get
-            )
-        })
+        ('/test', 'GET', Route(routed=my_get, requirements={})),
     ]
 
     assert list(router2) == [
-        RouteDefinition(path='/test', payload={
-            'POST': RouteEndpoint(
-                method='POST',
-                endpoint=my_post
-            )
-        })
+        ('/test', 'POST', Route(routed=my_post, requirements={})),
     ]
 
-    router3 = router1 + router2
+    router3 = router1 | router2
     assert list(router3) == [
-        RouteDefinition(path='/test', payload={
-            'GET': RouteEndpoint(
-                method='GET',
-                endpoint=my_get
-            ),
-            'POST': RouteEndpoint(
-                method='POST',
-                endpoint=my_post
-            )
-        })
+        ('/test', 'GET', Route(routed=my_get, requirements={})),
+        ('/test', 'POST', Route(routed=my_post, requirements={})),
     ]
 
 
 def test_override_method_registration_operation():
-    router1 = Routes()
-    router2 = Routes()
+    router1 = Router()
+    router2 = Router()
 
     @router1.register('/test')
     def my_get(request):
@@ -60,51 +42,21 @@ def test_override_method_registration_operation():
         pass
 
     assert list(router1) == [
-        RouteDefinition(
-            path='/test',
-            payload={
-                'GET': RouteEndpoint(
-                    method='GET',
-                    endpoint=my_get
-                )
-            }
-        )
+        ('/test', 'GET', Route(routed=my_get, requirements={})),
     ]
 
     assert list(router2) == [
-        RouteDefinition(
-            path='/test',
-            payload={
-                'GET': RouteEndpoint(
-                    method='GET',
-                    endpoint=my_other_get
-                )
-            }
-        )
+        ('/test', 'GET', Route(routed=my_other_get, requirements={})),
     ]
 
-    router3 = router1 + router2
+    router3 = router1 | router2
     assert list(router3) == [
-        RouteDefinition(
-            path='/test',
-            payload={
-                'GET': RouteEndpoint(
-                    method='GET',
-                    endpoint=my_other_get
-                )
-            }
-        )
+        ('/test', 'GET', Route(routed=my_get, requirements={})),
+        ('/test', 'GET', Route(routed=my_other_get, requirements={})),
     ]
 
-    router3 = router2 + router1
+    router3 = router2 | router1
     assert list(router3) == [
-        RouteDefinition(
-            path='/test',
-            payload={
-                'GET': RouteEndpoint(
-                    method='GET',
-                    endpoint=my_get
-                )
-            }
-        )
+        ('/test', 'GET', Route(routed=my_other_get, requirements={})),
+        ('/test', 'GET', Route(routed=my_get, requirements={})),
     ]

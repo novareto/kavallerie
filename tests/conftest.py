@@ -9,19 +9,20 @@ from transaction import TransactionManager
 from horseman.mapping import RootNode
 from horseman.request import Request
 from kavallerie.errors import HTTPError
-from kavallerie.routes import Routes
+from kavallerie.routing import Router
 
 
 class MockRoutingNode(RootNode):
 
     def __init__(self):
-        self.routes = Routes()
+        self.routes = Router()
+        self.routes.finalize()
 
     def resolve(self, environ: dict):
         request = Request(environ)
-        route = self.routes.match_method(request.path, request.method)
+        route = self.routes.get(request.path, request.method)
         if route is not None:
-            return route.endpoint(request, **route.params)
+            return route.routed(request, **route.params)
         raise HTTPError(404)
 
 

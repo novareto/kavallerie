@@ -53,7 +53,7 @@ def test_session_middleware(http_session_store):
         request.utilities['http_session']['value'] = 666
         raise NotImplementedError()
 
-    test = WSGIApp(app)
+    test = WSGIApp(app.finalize())
     with freeze_time('2024-11-26 12:00:01'):
         response = test.get('/add')
         assert store.get('00000000-0000-0000-0000-000000000000') == {

@@ -12,14 +12,14 @@ def test_resolve(node):
     def fake_route(request):
         return horseman.response.Response(200, body=b'OK !')
 
+    node.routes.finalize()
     result = node.resolve({'REQUEST_METHOD': 'GET', 'PATH_INFO': '/getter'})
     assert isinstance(result, horseman.response.Response)
 
     with pytest.raises(HTTPError) as exc:
         node.resolve({'REQUEST_METHOD': 'POST', 'PATH_INFO': '/getter'})
 
-    # METHOD UNALLOWED.
-    assert exc.value.status == http.HTTPStatus(405)
+    assert exc.value.status == http.HTTPStatus(404)
 
 
 def test_wsgi_roundtrip(node):
@@ -32,9 +32,9 @@ def test_wsgi_roundtrip(node):
     def fake_route(request):
         return horseman.response.Response(200, body=b'OK !')
 
+    node.routes.finalize()
     response = app.get('/getter')
     assert response.body == b'OK !'
 
-    response = app.post('/getter', status=405)
-    assert response.body == (
-        b'Specified method is invalid for this resource')
+    response = app.post('/getter', status=404)
+    assert response.status == '404 Not Found'

@@ -1,8 +1,9 @@
 import pytest
 from unittest.mock import Mock
+from autorouting import Route
 from kavallerie.plugins import Plugin
 from kavallerie.app import Application, RoutingApplication
-from kavallerie import routes as routing
+from kavallerie import routing
 from kavallerie.response import Response
 from kavallerie.registries import Blueprint
 
@@ -63,7 +64,7 @@ def test_plugin_install_with_hooks():
 
 
 def test_plugin_with_blueprint_no_registry():
-    routes = Blueprint(master=routing.Routes)
+    routes = Blueprint(master=routing.Router)
     plugin = Plugin('route', blueprints={"routes": routes})
     app = Application()
 
@@ -72,7 +73,7 @@ def test_plugin_with_blueprint_no_registry():
 
 
 def test_plugin_with_singular_blueprint():
-    routes = Blueprint(master=routing.Routes)
+    routes = Blueprint(master=routing.Router)
     plugin = Plugin('route', blueprints={"routes": routes})
     app = RoutingApplication()
 
@@ -82,22 +83,13 @@ def test_plugin_with_singular_blueprint():
 
     plugin.install(app)
     assert list(app.routes) == [
-        routing.RouteDefinition(
-            path='/',
-            payload={
-                'GET': routing.RouteEndpoint(
-                    method='GET',
-                    endpoint=handler,
-                    metadata=None
-                )
-            }
-        )
+        ('/', 'GET', Route(routed=handler, requirements={}, priority=0)),
     ]
 
 
 def test_plugin_with_plural_blueprints():
-    browser = Blueprint(master=routing.Routes)
-    api = Blueprint(master=routing.Routes)
+    browser = Blueprint(master=routing.Router)
+    api = Blueprint(master=routing.Router)
     plugin = Plugin('route', blueprints={"routes": [browser, api]})
     app = RoutingApplication()
 
@@ -111,24 +103,6 @@ def test_plugin_with_plural_blueprints():
 
     plugin.install(app)
     assert list(app.routes) == [
-        routing.RouteDefinition(
-            path='/',
-            payload={
-                'GET': routing.RouteEndpoint(
-                    method='GET',
-                    endpoint=view,
-                    metadata=None
-                )
-            }
-        ),
-        routing.RouteDefinition(
-            path='/api',
-            payload={
-                'GET': routing.RouteEndpoint(
-                    method='GET',
-                    endpoint=handler,
-                    metadata=None
-                )
-            }
-        )
+        ('/', 'GET', Route(routed=view, requirements={}, priority=0)),
+        ('/api', 'GET', Route(routed=handler, requirements={}, priority=0))
     ]

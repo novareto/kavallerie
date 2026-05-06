@@ -1,3 +1,4 @@
+
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
@@ -20,10 +21,11 @@ readme = {file = "README.rst", content-type = "text/x-rst"}
 requires-python = ">=3.11"
 dependencies = [
   "authsources",
-  "autoroutes",
+  "autorouting",
   "frozendict",
   "gelidum",
   "kettu",
+  "plum",
   "horseman>=1.0b1",
   "http-session>=0.2",
   "importlib-metadata>=6.5",

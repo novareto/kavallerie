@@ -34,7 +34,7 @@ def test_middleware():
     def view(request):
         return Response(200, body='This is my view')
 
-    test = WSGIApp(app)
+    test = WSGIApp(app.finalize())
     response = test.get('/')
     assert response.body == b'This is my view'
 

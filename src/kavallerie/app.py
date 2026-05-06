@@ -8,7 +8,7 @@ from kavallerie.errors import HTTPError
 from kavallerie.events import Subscribers
 from kavallerie.request import Request
 from kavallerie.response import Response
-from kavallerie.routes import Routes
+from kavallerie.routing import Router
 
 
 @dataclass
@@ -28,15 +28,22 @@ class Application(meta.Application, RootNode):
         endpoint = self.pipeline.wrap(self.endpoint, self.config)
         return endpoint(request)
 
+    def finalize(self):
+        return self
+
 
 @dataclass
 class RoutingApplication(Application):
-    routes: Routes = field(default_factory=Routes)
+    routes: Router = field(default_factory=Router)
 
     def endpoint(self, request: Request) -> Response:
-        route = self.routes.match_method(request.path, request.method)
+        route = self.routes.get(request.path, request.method)
         if route is None:
             raise HTTPError(404)
 
         request.route = route
-        return route.endpoint(request, **route.params)
+        return route.routed(request, **route.params)
+
+    def finalize(self):
+        self.routes.finalize()
+        return self

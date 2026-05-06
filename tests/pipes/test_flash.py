@@ -27,7 +27,7 @@ def test_session_middleware(http_session_store):
         list(request.utilities['flash'])
         return Response(400)
 
-    test = WSGIApp(app)
+    test = WSGIApp(app.finalize())
     response = test.get('/add')
     session = store.get('00000000-0000-0000-0000-000000000000')
     hamcrest.assert_that(session, hamcrest.has_entries({

@@ -5,6 +5,7 @@ from horseman.mapping import Node
 from http_session.session import Session
 from kavallerie import meta
 from kettu.cors import CORSPolicy
+from autorouting import Route
 
 
 class FlagsField(SimpleNamespace):
@@ -28,7 +29,7 @@ class Request(meta.Request):
     # arguments
     flags: FlagsField
     cors_policy: CORSPolicy | None
-    route: meta.Route | None
+    route: Route | None
     environ: WSGIEnviron
 
     def __init__(self,
@@ -36,7 +37,7 @@ class Request(meta.Request):
                  environ: WSGIEnviron,
                  *,
                  cors_policy: CORSPolicy | None = None,
-                 route: meta.Route | None = None,
+                 route: Route | None = None,
                  user: meta.User | None = None,
                  utilities: t.Mapping[str, t.Any] | None = None,
                  ):
