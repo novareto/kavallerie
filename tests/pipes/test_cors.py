@@ -1,4 +1,4 @@
-from kavallerie.cors import CORSPolicy
+from kettu.cors import CORSPolicy
 from kavallerie.request import Request
 from kavallerie.response import Response
 from kavallerie.pipes.cors import CORS
@@ -28,7 +28,7 @@ def test_preflight(environ):
     request = Request(None, environ=opts_env, cors_policy=policy)
     response = CORS(handler)(request)
     assert response.status == 200
-    assert dict(response.headers.coalesced_items()) == {
+    assert dict(response.headers.items()) == {
         'Access-Control-Expose-Headers': 'Accept-Encoding',
         'Access-Control-Allow-Headers': 'X-Custom-Header, Accept-Encoding'
     }
@@ -42,7 +42,7 @@ def test_preflight(environ):
     request = Request(None, environ=opts_env, cors_policy=policy)
     response = CORS(handler)(request)
     assert response.status == 200
-    assert dict(response.headers.coalesced_items()) == {
+    assert dict(response.headers.items()) == {
         'Vary': 'Origin',
         'Access-Control-Allow-Origin': 'http://example.com',
         'Access-Control-Expose-Headers': 'Accept-Encoding',

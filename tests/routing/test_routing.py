@@ -1,8 +1,9 @@
 import http
 import webtest
 import pytest
-from horseman.exceptions import HTTPError
 import horseman.response
+
+from kavallerie.errors import HTTPError
 
 
 def test_resolve(node):

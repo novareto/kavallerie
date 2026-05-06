@@ -42,17 +42,18 @@ class HTTPSession(MiddlewareFactory):
             session = request.utilities.get('http_session')
             if session is None:
                 new = True
-                if (sig := request.cookies.get(self.manager.cookie_name)):
-                    try:
-                        sid = str(self.manager.verify_id(sig), 'utf-8')
-                        new = False
-                    except itsdangerous.exc.SignatureExpired:
-                        # Session expired. We generate a new one.
-                        pass
-                    except itsdangerous.exc.BadTimeSignature:
-                        # Discrepancy in time signature.
-                        # Invalid, generate a new one
-                        pass
+                if request.cookies is not None:
+                    if (sig := request.cookies.get(self.manager.cookie_name)):
+                        try:
+                            sid = str(self.manager.verify_id(sig), 'utf-8')
+                            new = False
+                        except itsdangerous.exc.SignatureExpired:
+                            # Session expired. We generate a new one.
+                            pass
+                        except itsdangerous.exc.BadTimeSignature:
+                            # Discrepancy in time signature.
+                            # Invalid, generate a new one
+                            pass
 
                 if new is True:
                     sid = self.manager.generate_id()
@@ -87,7 +88,7 @@ class HTTPSession(MiddlewareFactory):
             domain = self.config.domain or request.domain
             cookie = self.manager.cookie(
                 session.sid,
-                request.script_name or '/',
+                request.root_path or '/',
                 domain,
                 secure=self.config.secure,
                 samesite=self.config.samesite,

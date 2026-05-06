@@ -1,8 +1,10 @@
 import orjson
 from http import HTTPStatus
 from typing import Iterable, Any
-from horseman.response import Response as BaseResponse, Headers
-from horseman.types import Environ, HTTPCode, StartResponse
+from kettu.types import HTTPCode
+from kettu.response import ResponseHeaders
+from horseman.response import Response as BaseResponse
+from horseman.types import StartResponse
 
 
 REDIRECT = frozenset((
@@ -22,7 +24,7 @@ class Response(BaseResponse):
     @classmethod
     def redirect(cls, location, code: HTTPCode = 303,
                  body: Iterable | None = None,
-                 headers: Headers | None = None):
+                 headers: ResponseHeaders | None = None):
         if code not in REDIRECT:
             raise ValueError(f"{code}: unknown redirection code.")
         if not headers:
@@ -33,7 +35,7 @@ class Response(BaseResponse):
 
     @classmethod
     def from_file_iterator(cls, filename: str, body: Iterable[bytes],
-                           headers: Headers | None = None):
+                           headers: ResponseHeaders | None = None):
         if headers is None:
             headers = {
                 "Content-Disposition": f"attachment;filename={filename}"}
@@ -44,7 +46,7 @@ class Response(BaseResponse):
 
     @classmethod
     def to_json(cls, code: HTTPCode = 200, body: Any | None = None,
-                headers: Headers | None = None):
+                headers: ResponseHeaders | None = None):
         data = orjson.dumps(body)
         if headers is None:
             headers = {'Content-Type': 'application/json'}
@@ -54,7 +56,7 @@ class Response(BaseResponse):
 
     @classmethod
     def from_json(cls, code: HTTPCode = 200, body: str = '',
-                  headers: Headers | None = None):
+                  headers: ResponseHeaders | None = None):
         if headers is None:
             headers = {'Content-Type': 'application/json'}
         else:
@@ -63,7 +65,7 @@ class Response(BaseResponse):
 
     @classmethod
     def html(cls, code: HTTPCode = 200, body: str = '',
-             headers: Headers | None = None):
+             headers: ResponseHeaders | None = None):
         if headers is None:
             headers = {'Content-Type': 'text/html; charset=utf-8'}
         else:

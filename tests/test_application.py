@@ -1,5 +1,5 @@
 import pytest
-from horseman.exceptions import HTTPError
+from kavallerie.errors import HTTPError
 from kavallerie.app import RoutingApplication
 from kavallerie.response import Response
 from webtest import TestApp as WebApp

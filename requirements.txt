@@ -1,2 +1,4 @@
 --extra-index-url https://pypi.bg-kooperation.de/
+-e git+https://github.com/WolfSGI/kettu.git#egg=kettu
+-e git+https://github.com/HorsemanWSGI/horseman.git@kettu#egg=horseman
 -e .[test]

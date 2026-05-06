@@ -1,16 +1,10 @@
-import abc
 import typing as t
-import urllib.parse
-import horseman.parsers
-import horseman.types
-import horseman.datastructures
+from horseman.types import WSGIEnviron
 from types import SimpleNamespace
-from authsources.protocols import RequestProtocol
-from horseman.environ import WSGIEnvironWrapper
 from horseman.mapping import Node
 from http_session.session import Session
 from kavallerie import meta
-from kavallerie.cors import CORSPolicy
+from kettu.cors import CORSPolicy
 
 
 class FlagsField(SimpleNamespace):
@@ -19,7 +13,7 @@ class FlagsField(SimpleNamespace):
         return None
 
 
-class Request(WSGIEnvironWrapper, meta.Request):
+class Request(meta.Request):
 
     __slots__ = (
         'app',
@@ -32,33 +26,30 @@ class Request(WSGIEnvironWrapper, meta.Request):
     )
 
     # arguments
-    app: meta.Application | None
     flags: FlagsField
-    user: meta.User | None
     cors_policy: CORSPolicy | None
     route: meta.Route | None
+    environ: WSGIEnviron
 
     def __init__(self,
                  app: meta.Application | None,
-                 environ: horseman.types.Environ,
+                 environ: WSGIEnviron,
                  *,
                  cors_policy: CORSPolicy | None = None,
                  route: meta.Route | None = None,
                  user: meta.User | None = None,
                  utilities: t.Mapping[str, t.Any] | None = None,
                  ):
-        self.user = user
-        self.app = app
-        self.utilities = utilities is not None and utilities or {}
         self.route = route
         self.cors_policy = cors_policy
         self.flags = FlagsField()
-        WSGIEnvironWrapper.__init__(self, environ)
+        self.environ = environ
+        super().__init__(app=app, user=user, utilities=utilities)
 
     @property
     def headers(self):
         # Respecting the RequestProtocol
-        return self._environ
+        return self.environ
 
 
 __all__ = ['Request']

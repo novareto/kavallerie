@@ -10,12 +10,12 @@ def test_request(environ):
     assert request.route is None
     assert request.cors_policy is None
     assert request.query == {}
-    assert request.cookies == {}
-    assert request.content_type == ''
+    assert request.cookies == None
+    assert request.content_type == None
     assert request.application_uri == "http://test_domain.com"
     assert request.uri() == "http://test_domain.com/"
     assert request.uri(include_query=False) == "http://test_domain.com/"
-    assert request.headers is request._environ
+    assert request.headers is request.environ
 
 
 def test_request_flags(environ):

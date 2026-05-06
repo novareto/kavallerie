@@ -28,7 +28,7 @@ def secured(path: str | None = None) -> Filter:
     def _filter(caller, request):
         if request.user is None:
             if path is not None:
-                return Response.redirect(request.script_name + path)
+                return Response.redirect(request.root_path + path)
             return Response(403)
 
     return _filter
@@ -40,6 +40,6 @@ def TwoFA(path: str, checker: t.Callable[[Request], bool]) -> Filter:
         if request.path == path:
             return caller(request)
         if not checker(request):
-            return Response.redirect(request.script_name + path)
+            return Response.redirect(request.root_path + path)
 
     return _filter

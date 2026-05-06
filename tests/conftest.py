@@ -7,8 +7,8 @@ from http_session.meta import Store
 from unittest.mock import Mock, patch
 from transaction import TransactionManager
 from horseman.mapping import RootNode
-from horseman.exceptions import HTTPError
-from horseman.environ import WSGIEnvironWrapper
+from horseman.request import Request
+from kavallerie.errors import HTTPError
 from kavallerie.routes import Routes
 
 
@@ -18,7 +18,7 @@ class MockRoutingNode(RootNode):
         self.routes = Routes()
 
     def resolve(self, environ: dict):
-        request = WSGIEnvironWrapper(environ)
+        request = Request(environ)
         route = self.routes.match_method(request.path, request.method)
         if route is not None:
             return route.endpoint(request, **route.params)

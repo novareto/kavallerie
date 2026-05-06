@@ -1,4 +1,4 @@
-from horseman.exceptions import HTTPError
+from kettu.exceptions import HTTPError
 
 
 __all__ = ['HTTPError']

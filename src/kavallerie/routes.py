@@ -4,10 +4,10 @@ import logging
 from http import HTTPStatus
 
 import autoroutes
+from kettu.types import HTTPMethod
 from kavallerie.meta import (
     APIView, Endpoint, HTTPMethods, Route, RouteDefinition, RouteEndpoint)
-from horseman.types import HTTPMethod
-from horseman.exceptions import HTTPError
+from kavallerie.errors import HTTPError
 
 
 logger = logging.getLogger('kavallerie.routes')
