@@ -1,11 +1,14 @@
 import inspect
 import types
+
 from typing import Callable, NamedTuple, Dict, Sequence, Any, Type, get_args
 from plum import dispatch, overload
+
+from autorouting import Router as BaseRouter, MatchedRoute
 from horseman.abc.request import RequestProtocol
 from horseman.abc.response import ResponseProtocol
 from kavallerie.meta import APIView
-from autorouting import Router as BaseRouter, MatchedRoute
+from kavallerie.pipeline import chain_wrap
 from kettu.types import HTTPMethod
 
 

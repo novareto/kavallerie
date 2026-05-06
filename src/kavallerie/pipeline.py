@@ -1,7 +1,6 @@
 import abc
 import typing as t
-import bisect
-from functools import reduce, wraps
+from functools import reduce, wraps, update_wrapper
 from gelidum import freeze
 from kavallerie.response import Response
 from kavallerie.components import PriorityChain
@@ -9,6 +8,17 @@ from kavallerie.components import PriorityChain
 
 Handler = t.Callable
 Middleware = t.Callable[[Handler, t.Optional[t.Mapping]], Handler]
+Wrapper = t.Callable[[t.Callable], t.Callable]
+
+
+def chain_wrap(
+        chain: t.Sequence[Wrapper], endpoint: t.Callable) -> t.Callable:
+    wrapped = endpoint
+    for middleware in reversed(chain):
+        wrapping = middleware(wrapped)
+        update_wrapper(wrapping, wrapped)
+        wrapped = wrapping
+    return wrapped
 
 
 class Pipeline(PriorityChain[Middleware]):
