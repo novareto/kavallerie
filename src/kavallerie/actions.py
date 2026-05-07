@@ -164,7 +164,7 @@ class ContextualAction(t.NamedTuple):
 
     @property
     def active(self):
-        prefix_len = len(self.request.script_name)
+        prefix_len = len(self.request.root_path)
         url = self.request.application_uri + self.url[prefix_len:]
         return self.request.uri().startswith(url)
 
