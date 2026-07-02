@@ -35,6 +35,7 @@ class BaseAuthenticator(Authenticator):
             self, request: Request, credentials: dict
     ) -> ResolvedUser | None:
         for source_id, source in self.sources.items():
+            source = source.bind(request=request, authenticator=self)
             if action := source.get(Challenge):
                 user = action.challenge(credentials)
                 if user is not None:
@@ -43,6 +44,7 @@ class BaseAuthenticator(Authenticator):
 
     def identify(self, request: Request) -> ResolvedUser | None:
         for source_id, source in self.sources.items():
+            source = source.bind(request=request, authenticator=self)
             if action := source.get(Preflight):
                 logger.info(f'Preflight found: {source.title}')
                 user = action.preflight(request)
@@ -55,6 +57,7 @@ class BaseAuthenticator(Authenticator):
         logger.info('Authentication initiated.')
         if (info := self.get_stored_info(request)) is not None:
             source = self.sources[info['source_id']]
+            source = source.bind(request=request, authenticator=self)
             if action := source.get(Getter):
                 user = action.get(info['user_id'])
                 if user is not None:
