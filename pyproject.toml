@@ -19,11 +19,11 @@ description = "Full-blown WSGI Framework using Horseman."
 readme = {file = "README.rst", content-type = "text/x-rst"}
 requires-python = ">=3.11"
 dependencies = [
-  "authsources",
+  "authsources >= 0.4",
   "autoroutes",
   "frozendict",
   "gelidum",
-  "kettu",
+  "kettu >= 0.1.1",
   "horseman>=1.0b1",
   "http-session>=0.2",
   "importlib-metadata>=6.5",
