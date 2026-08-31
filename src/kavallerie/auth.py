@@ -1,7 +1,7 @@
 import typing as t
 import logging
 from wrapt import ObjectProxy
-from authsources.identity import User
+from authsources.identity import User, UserID
 from authsources.source import Source
 from authsources.protocols import Challenge, Preflight, Getter
 from authsources.authenticator import Authenticator
@@ -30,6 +30,15 @@ class BaseAuthenticator(Authenticator):
 
     def __init__(self, sources: t.Mapping[str, Source] | None = None):
         self.sources = dict(sources) if sources is not None else {}
+
+    def fetch(self, request: Request, uid: UserID) -> ResolvedUser | None:
+        for source_id, source in self.sources.items():
+            source = source.bind(request=request, authenticator=self)
+            if action := source.get(Getter):
+                user = action.get(uid)
+                if user is not None:
+                    return ResolvedUser(user, source_id=source_id)
+        return None
 
     def challenge(
             self, request: Request, credentials: dict
