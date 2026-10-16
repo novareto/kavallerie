@@ -31,7 +31,7 @@ dependencies = [
   "itsdangerous",
   "jsonschema-rs",
   "orjson",
-  "postrider",
+  "postrider>=0.3",
   "prejudice",
   "transaction",
   "wrapt",
