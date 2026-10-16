@@ -19,8 +19,8 @@ def test_emailer(environ):
         )
         return Response(400)
 
-    config = SMTPConfiguration(port=9999)
-    mailer = Mailer(SMTPCourrier('test@example.com', config))
+    config = SMTPConfiguration.factory(port=9999)
+    mailer = Mailer(config)
 
     request = Request(None, environ=environ)
     pipeline = mailer(handler)
@@ -50,8 +50,8 @@ def test_emailer_with_transaction(environ):
         request.utilities['transaction_manager'].doom()
         return Response(200)
 
-    config = SMTPConfiguration(port=9999)
-    mailer = Mailer(SMTPCourrier('test@example.com', config))
+    config = SMTPConfiguration.factory(port=9999)
+    mailer = Mailer(config)
     transaction = Transaction()
 
     request = Request(None, environ=environ)
