@@ -55,22 +55,22 @@ class BaseAuthenticator(Authenticator):
         for source_id, source in self.sources.items():
             source = source.bind(request=request, authenticator=self)
             if action := source.get(Preflight):
-                logger.info(f'Preflight found: {source.title}')
+                logger.debug(f'Preflight found: {source.title}')
                 user = action.preflight(request)
                 if user is not None:
-                    logger.info(
+                    logger.debug(
                         f'Preflight user found by {source.title}: {user}.')
                     return ResolvedUser(user, source_id=source_id)
-                logger.info('Authentication preflight unsuccessful.')
+                logger.debug('Authentication preflight unsuccessful.')
 
-        logger.info('Authentication initiated.')
+        logger.debug('Authentication initiated.')
         if (info := self.get_stored_info(request)) is not None:
             source = self.sources[info['source_id']]
             source = source.bind(request=request, authenticator=self)
             if action := source.get(Getter):
                 user = action.get(info['user_id'])
                 if user is not None:
-                    logger.info(
+                    logger.debug(
                         f"Source {info['source_id']} found: {user}")
                     return ResolvedUser(user, source_id=info['source_id'])
 
